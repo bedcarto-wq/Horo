@@ -296,11 +296,11 @@ def test_variable_history_stable_id():
 
 
 def test_corrupt_file_atomic_save_and_no_mutation(tmp_path):
-    p = basic(); save_project(p, tmp_path); original = (tmp_path/'project.horo.json').read_text()
+    p = basic(); save_project(p, tmp_path); original = (tmp_path/'project.horo.json').read_text(encoding='utf-8')
     bad = tmp_path/'bad.json'; bad.write_text('{not JSON}', encoding='utf-8')
     with pytest.raises(ValueError):
         load_project(bad)
-    assert (tmp_path/'project.horo.json').read_text() == original
+    assert (tmp_path/'project.horo.json').read_text(encoding='utf-8') == original
     assert load_project(tmp_path).to_dict() == p.to_dict()
 
 

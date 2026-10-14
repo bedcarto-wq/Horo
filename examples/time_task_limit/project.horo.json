@@ -1,0 +1,68 @@
+{
+  "name": "Проверка лимита живых задач",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "3b35f9e5e1cc4845bd4330a7c455ffd1": {
+      "id": "3b35f9e5e1cc4845bd4330a7c455ffd1",
+      "name": "Изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "8751df3041cb48188a08c1fda4cfac77"
+    }
+  },
+  "graphs": {
+    "8751df3041cb48188a08c1fda4cfac77": {
+      "id": "8751df3041cb48188a08c1fda4cfac77",
+      "name": "Проверка лимита живых задач",
+      "kind": "behavior",
+      "nodes": {
+        "c2dea1d0c1fb42ec8cdb746c53378977": {
+          "id": "c2dea1d0c1fb42ec8cdb746c53378977",
+          "kind": "frame",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "52f2e4c044444cb6917e99bfe6afdb38": {
+          "id": "52f2e4c044444cb6917e99bfe6afdb38",
+          "kind": "wait",
+          "name": "",
+          "x": 430,
+          "y": 0,
+          "params": {
+            "n": 1000
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "c2dea1d0c1fb42ec8cdb746c53378977",
+          "output": "next",
+          "target": "52f2e4c044444cb6917e99bfe6afdb38",
+          "input": "in",
+          "id": "ef6b190a88a4408e9783eb52d76caae1"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {},
+  "format_version": 1
+}

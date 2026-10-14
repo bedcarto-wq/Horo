@@ -1,0 +1,190 @@
+{
+  "name": "Вложенные циклы",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "e520e3411c044b8680fb37ca3f31adb1": {
+      "id": "e520e3411c044b8680fb37ca3f31adb1",
+      "name": "Изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "3ab1a1a8741d47a0b648956ef9d05d19"
+    }
+  },
+  "graphs": {
+    "3ab1a1a8741d47a0b648956ef9d05d19": {
+      "id": "3ab1a1a8741d47a0b648956ef9d05d19",
+      "name": "Вложенные циклы",
+      "kind": "behavior",
+      "nodes": {
+        "67dd654434fc41348647088ef192715f": {
+          "id": "67dd654434fc41348647088ef192715f",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "f8bccf22e6b3482e82ef658d61efb88c": {
+          "id": "f8bccf22e6b3482e82ef658d61efb88c",
+          "kind": "repeat",
+          "name": "",
+          "x": 430,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "cb7f6c7dc3f1486ab871b7c43e1f1a0a": {
+          "id": "cb7f6c7dc3f1486ab871b7c43e1f1a0a",
+          "kind": "number",
+          "name": "",
+          "x": 0,
+          "y": 350,
+          "params": {
+            "value": 2
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "34fcc7b2a791452bbf76cb05bd6eabef": {
+          "id": "34fcc7b2a791452bbf76cb05bd6eabef",
+          "kind": "repeat",
+          "name": "",
+          "x": 20,
+          "y": 20,
+          "params": {},
+          "region": "f8bccf22e6b3482e82ef658d61efb88c",
+          "expanded": true,
+          "outputs": []
+        },
+        "019724fd6b214315bce5372280ac9cb4": {
+          "id": "019724fd6b214315bce5372280ac9cb4",
+          "kind": "number",
+          "name": "",
+          "x": 20,
+          "y": 350,
+          "params": {
+            "value": 3
+          },
+          "region": "f8bccf22e6b3482e82ef658d61efb88c",
+          "expanded": true,
+          "outputs": []
+        },
+        "a6edb0419a174402ae793230ce80933a": {
+          "id": "a6edb0419a174402ae793230ce80933a",
+          "kind": "wait",
+          "name": "",
+          "x": 20,
+          "y": 20,
+          "params": {
+            "n": 0.2
+          },
+          "region": "34fcc7b2a791452bbf76cb05bd6eabef",
+          "expanded": true,
+          "outputs": []
+        },
+        "2e7bd51104f047a49a7795bae15084a0": {
+          "id": "2e7bd51104f047a49a7795bae15084a0",
+          "kind": "move",
+          "name": "",
+          "x": 430,
+          "y": 20,
+          "params": {},
+          "region": "34fcc7b2a791452bbf76cb05bd6eabef",
+          "expanded": true,
+          "outputs": []
+        },
+        "492cc1c4b42840c3b486c01bf1345073": {
+          "id": "492cc1c4b42840c3b486c01bf1345073",
+          "kind": "vector",
+          "name": "",
+          "x": 20,
+          "y": 230,
+          "params": {
+            "x": 10,
+            "y": 0
+          },
+          "region": "34fcc7b2a791452bbf76cb05bd6eabef",
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "67dd654434fc41348647088ef192715f",
+          "output": "next",
+          "target": "f8bccf22e6b3482e82ef658d61efb88c",
+          "input": "in",
+          "id": "af4357a15c6b4ea491983bc4efa3b08a"
+        },
+        {
+          "source": "cb7f6c7dc3f1486ab871b7c43e1f1a0a",
+          "output": "value",
+          "target": "f8bccf22e6b3482e82ef658d61efb88c",
+          "input": "n",
+          "id": "afdecbb6d64849e5ba2fc114ed094742"
+        },
+        {
+          "source": "f8bccf22e6b3482e82ef658d61efb88c",
+          "output": "body",
+          "target": "34fcc7b2a791452bbf76cb05bd6eabef",
+          "input": "in",
+          "id": "70165a058d6e4f278990ac7679edc6c6"
+        },
+        {
+          "source": "019724fd6b214315bce5372280ac9cb4",
+          "output": "value",
+          "target": "34fcc7b2a791452bbf76cb05bd6eabef",
+          "input": "n",
+          "id": "6e2525f7fb06452a8fa9bcf5c3b80b59"
+        },
+        {
+          "source": "67dd654434fc41348647088ef192715f",
+          "output": "object",
+          "target": "2e7bd51104f047a49a7795bae15084a0",
+          "input": "object",
+          "id": "fbfe498c425d44aebb41eb71a3b5c085"
+        },
+        {
+          "source": "492cc1c4b42840c3b486c01bf1345073",
+          "output": "value",
+          "target": "2e7bd51104f047a49a7795bae15084a0",
+          "input": "delta",
+          "id": "0eb408fb3ec04e619a37945c84e7b2cb"
+        },
+        {
+          "source": "34fcc7b2a791452bbf76cb05bd6eabef",
+          "output": "body",
+          "target": "a6edb0419a174402ae793230ce80933a",
+          "input": "in",
+          "id": "80e7ab9535114d3cae8536a6390ee467"
+        },
+        {
+          "source": "a6edb0419a174402ae793230ce80933a",
+          "output": "next",
+          "target": "2e7bd51104f047a49a7795bae15084a0",
+          "input": "in",
+          "id": "cb44165be3974d2e80673dd6ccc3d360"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {},
+  "format_version": 1
+}

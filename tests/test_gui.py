@@ -233,3 +233,81 @@ def test_editor_shortcuts_do_not_steal_text_input(qapp, tmp_path):
     assert field.text() != 'Edited'
     field.editingFinished.emit(); qapp.processEvents()
     finish(w, qapp)
+
+
+def test_stage_two_outputs_buttons_ids_and_undo(qapp,tmp_path):
+    from PySide6.QtWidgets import QPushButton
+    from horo.model import Edge
+    w=window(qapp,tmp_path);g=next(iter(w.project.graphs.values()));w.open_graph(g.id)
+    w.add_graph_node('sequence',800,0);seq=next(n for n in w.current_graph().nodes.values() if n.kind=='sequence')
+    original=seq.outputs[:];card=w.graph_editor.canvas.card_items[seq.id]
+    proxy=next(c for c in card.childItems() if hasattr(c,'widget'))
+    plus=next(b for b in proxy.widget().findChildren(QPushButton) if b.text()=='+ Выход')
+    plus.click();qapp.processEvents();assert len(w.current_graph().nodes[seq.id].outputs)==3
+    w.add_graph_node('move',1200,0);target=list(w.current_graph().nodes.values())[-1]
+    w.add_edge(Edge(seq.id,original[0],target.id,'in'))
+    before=w.project.to_dict();w.edit_output(seq.id,'remove',original[0]);qapp.processEvents()
+    assert original[0] not in w.current_graph().nodes[seq.id].outputs
+    assert not any(e.source==seq.id and e.output==original[0] for e in w.current_graph().edges)
+    w.graph_editor.canvas.setFocus();w.undo();qapp.processEvents();assert w.project.to_dict()==before
+    w.edit_output(seq.id,'down',original[0]);qapp.processEvents()
+    assert w.current_graph().nodes[seq.id].outputs[1]==original[0]
+    assert any(e.source==seq.id and e.output==original[0] for e in w.current_graph().edges)
+    finish(w,qapp)
+
+
+def test_stage_two_nested_regions_back_and_delete_restore(qapp,tmp_path):
+    w=window(qapp,tmp_path);g=next(iter(w.project.graphs.values()));w.open_graph(g.id)
+    w.add_graph_node('repeat',700,0);outer=next(n for n in w.current_graph().nodes.values() if n.kind=='repeat')
+    w.open_region(outer.id);assert 'while' in w.graph_editor.canvas.allowed()
+    w.add_graph_node('while',10,20);inner=next(n for n in w.current_graph().nodes.values() if n.kind=='while')
+    w.open_region(inner.id);assert w.region==inner.id and 'Пока' in w.graph_editor.breadcrumb.text()
+    w.graph_editor.back.click();assert w.region==outer.id
+    w.graph_editor.back.click();assert w.region is None
+    w.remove_graph_elements([outer.id],[]);assert inner.id not in w.current_graph().nodes
+    w.graph_editor.canvas.setFocus();w.undo();qapp.processEvents()
+    assert w.current_graph().nodes[inner.id].region==outer.id
+    finish(w,qapp)
+
+
+def test_stage_two_game_update_not_paint_and_close_cancels_wait(qapp,tmp_path):
+    from horo.ui.game import GameWindow
+    from horo.runtime import Runtime
+    from horo.examples import link
+    w=window(qapp,tmp_path);g=next(iter(w.project.graphs.values()));oid=next(iter(w.project.nodes))
+    frame=g.add('frame');action=g.add('move');vec=g.add('vector',x=1,y=0)
+    link(g,frame,'next',action,'in');link(g,frame,'object',action,'object');link(g,vec,'value',action,'delta')
+    wait=g.add('wait',n=100);link(g,action,'next',wait,'in')
+    clock=[0];r=Runtime(w.project,clock=lambda:clock[0]);game=GameWindow(r,tmp_path)
+    w.game=game;game.failed.connect(w.message);game.finished.connect(w.game_finished)
+    game.show();qapp.processEvents();game.timer.stop()
+    x=r.project.nodes[oid].transform.x;game.canvas.viewport().update();qapp.processEvents()
+    assert r.project.nodes[oid].transform.x==x
+    clock[0]=.1;game.handle(r.update);assert r.project.nodes[oid].transform.x==x+1 and r.sleepers
+    w.stop_game();qapp.processEvents();assert not r.tasks and not r.sleepers and not r.ready and not r.scopes
+    finish(w,qapp)
+
+
+def test_stage_two_release_event_and_multiple_start_cards(qapp,tmp_path):
+    from horo.examples import link
+    w=window(qapp,tmp_path);g=next(iter(w.project.graphs.values()));w.open_graph(g.id)
+    w.add_graph_node('key',0,700);w.add_graph_node('key_release',0,950)
+    keys=[n for n in w.current_graph().nodes.values() if n.kind=='key'];assert len(keys)==2
+    release=next(n for n in w.current_graph().nodes.values() if n.kind=='key_release')
+    action=w.current_graph().add('move');vec=w.current_graph().add('vector',x=5,y=0)
+    link(w.current_graph(),release,'next',action,'in');link(w.current_graph(),release,'object',action,'object');link(w.current_graph(),vec,'value',action,'delta')
+    w.run_game();qapp.processEvents();oid=next(iter(w.project.nodes))
+    QTest.keyPress(w.game,Qt.Key.Key_Space);qapp.processEvents();assert w.game.runtime.project.nodes[oid].transform.x==110
+    QTest.keyRelease(w.game,Qt.Key.Key_Space);qapp.processEvents();assert w.game.runtime.project.nodes[oid].transform.x==115
+    finish(w,qapp)
+
+
+def test_stage_two_received_release_is_event_even_without_previous_window_press(qapp,tmp_path):
+    from horo.examples import link
+    w=window(qapp,tmp_path);g=next(iter(w.project.graphs.values()))
+    release=g.add('key_release');action=g.add('move');vector=g.add('vector',x=5,y=0)
+    link(g,release,'next',action,'in');link(g,release,'object',action,'object');link(g,vector,'value',action,'delta')
+    w.run_game();qapp.processEvents();oid=next(iter(w.project.nodes))
+    QTest.keyRelease(w.game,Qt.Key.Key_Space);qapp.processEvents()
+    assert w.game.runtime.project.nodes[oid].transform.x==85
+    finish(w,qapp)

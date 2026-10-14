@@ -8,11 +8,16 @@ LABELS = {'key': 'При нажатии клавиши', 'number': 'Число',
           'write': 'Записать переменную', 'add': 'Сложить числа', 'greater': 'Больше',
           'if': 'Если', 'entry': 'Вход функции', 'return': 'Вернуть результат',
           'call': 'Вызвать функцию', 'repeat': 'Повторить N раз',
-          'break': 'Прервать цикл', 'continue': 'Продолжить'}
-CATEGORIES = {'События': ['key'], 'Значения': ['number', 'text', 'bool', 'object', 'vector'],
+          'break': 'Прервать цикл', 'continue': 'Продолжить',
+          'start': 'При старте', 'frame': 'Каждый кадр', 'key_release': 'При отпускании клавиши',
+          'wait': 'Ждать N секунд', 'sequence': 'Последовательно', 'fork': 'Разветвитель',
+          'while': 'Пока'}
+CATEGORIES = {'События': ['key', 'key_release', 'start', 'frame'], 'Значения': ['number', 'text', 'bool', 'object', 'vector'],
               'Действия': ['move'], 'Переменные': ['read', 'write'],
-              'Вычисления': ['add', 'greater'], 'Управление': ['if', 'repeat', 'break', 'continue'],
+              'Вычисления': ['add', 'greater'], 'Управление': ['if', 'repeat', 'while', 'wait', 'sequence', 'fork', 'break', 'continue'],
               'Функции': ['entry', 'call', 'return']}
+STARTS = {'key', 'key_release', 'start', 'frame'}
+LOOPS = {'repeat', 'while'}
 PURE = {'number', 'text', 'bool', 'object', 'vector', 'read', 'add', 'greater'}
 
 @dataclass(frozen=True)
@@ -34,9 +39,14 @@ def ports(project: Project, graph: Graph, node: GraphNode):
         p('x', 'X (иначе поле)', 'number', 'in', False)
         p('y', 'Y (иначе поле)', 'number', 'in', False)
         p('value', 'Вектор', 'vector', 'out')
-    elif node.kind == 'key':
+    elif node.kind in STARTS:
         p('next', 'Выполнить', 'exec', 'out')
         p('object', 'Этот объект', 'object', 'out')
+        p('time', 'Время сеанса', 'number', 'out')
+        if node.kind in ('key', 'key_release'):
+            p('key', 'Клавиша события', 'text', 'out')
+        if node.kind == 'frame':
+            p('delta', 'Секунд с update', 'number', 'out')
     elif node.kind in ('add', 'greater'):
         p('a', 'A', 'number', 'in'); p('b', 'B', 'number', 'in')
         p('value', 'Сумма' if node.kind == 'add' else 'A > B',
@@ -56,9 +66,20 @@ def ports(project: Project, graph: Graph, node: GraphNode):
     elif node.kind == 'if':
         p('in', 'Выполнение', 'exec', 'in'); p('condition', 'Условие', 'bool', 'in')
         p('yes', 'Да', 'exec', 'out'); p('no', 'Нет', 'exec', 'out')
-    elif node.kind == 'repeat':
-        p('in', 'Выполнение', 'exec', 'in'); p('n', 'N', 'number', 'in')
+    elif node.kind in LOOPS:
+        p('in', 'Выполнение', 'exec', 'in')
+        if node.kind == 'repeat':
+            p('n', 'N', 'number', 'in')
+        else:
+            p('condition', 'Условие', 'bool', 'in')
         p('body', 'Тело', 'exec', 'out'); p('next', 'После цикла', 'exec', 'out')
+    elif node.kind == 'wait':
+        p('in', 'Выполнение', 'exec', 'in'); p('n', 'N (иначе поле)', 'number', 'in', False)
+        p('next', 'Далее', 'exec', 'out')
+    elif node.kind in ('sequence', 'fork'):
+        p('in', 'Выполнение', 'exec', 'in')
+        for index, key in enumerate(node.outputs, 1):
+            p(key, str(index), 'exec', 'out')
     elif node.kind in ('break', 'continue'):
         p('in', 'Выполнение', 'exec', 'in')
     elif node.kind == 'entry':

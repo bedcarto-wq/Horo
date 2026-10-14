@@ -1,0 +1,93 @@
+{
+  "name": "Клавиша → перемещение",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "dd8be959e54b412b94ec045b03ac3af3": {
+      "id": "dd8be959e54b412b94ec045b03ac3af3",
+      "name": "Тестовое изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "73e17be2b2f940618c05d84953af34c0"
+    }
+  },
+  "graphs": {
+    "73e17be2b2f940618c05d84953af34c0": {
+      "id": "73e17be2b2f940618c05d84953af34c0",
+      "name": "Перемещение по пробелу",
+      "kind": "behavior",
+      "nodes": {
+        "25eae59ce995489f939a2815bec65fb0": {
+          "id": "25eae59ce995489f939a2815bec65fb0",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {
+            "key": "Space"
+          },
+          "region": null,
+          "expanded": true
+        },
+        "fb7139bf2bd54623984eb318610bb936": {
+          "id": "fb7139bf2bd54623984eb318610bb936",
+          "kind": "vector",
+          "name": "",
+          "x": 0,
+          "y": 240,
+          "params": {
+            "x": 30,
+            "y": 0
+          },
+          "region": null,
+          "expanded": true
+        },
+        "1e17f080ad81409db1806c326ba2754b": {
+          "id": "1e17f080ad81409db1806c326ba2754b",
+          "kind": "move",
+          "name": "",
+          "x": 420,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true
+        }
+      },
+      "edges": [
+        {
+          "source": "25eae59ce995489f939a2815bec65fb0",
+          "output": "next",
+          "target": "1e17f080ad81409db1806c326ba2754b",
+          "input": "in",
+          "id": "8b25f0b25b2141269623ec33d5bfd525"
+        },
+        {
+          "source": "25eae59ce995489f939a2815bec65fb0",
+          "output": "object",
+          "target": "1e17f080ad81409db1806c326ba2754b",
+          "input": "object",
+          "id": "58925c3dddcc4d61a1bb132b7b838300"
+        },
+        {
+          "source": "fb7139bf2bd54623984eb318610bb936",
+          "output": "value",
+          "target": "1e17f080ad81409db1806c326ba2754b",
+          "input": "delta",
+          "id": "3c264f020d454da49c63542b7dbd34f6"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {},
+  "format_version": 1
+}

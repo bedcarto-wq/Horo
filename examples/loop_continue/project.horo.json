@@ -1,0 +1,253 @@
+{
+  "name": "Б — Функция и цикл",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "b8c938a39bda4fcaa41aafbe45b347bf": {
+      "id": "b8c938a39bda4fcaa41aafbe45b347bf",
+      "name": "Тестовое изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "4c0b6f2cc1ee498c8fd07b265b4bc15e"
+    }
+  },
+  "graphs": {
+    "6eac13719d5f499391227657f9250f32": {
+      "id": "6eac13719d5f499391227657f9250f32",
+      "name": "Получить смещение",
+      "kind": "function",
+      "nodes": {
+        "5b97ca233ba245029895f84fdd7bcd01": {
+          "id": "5b97ca233ba245029895f84fdd7bcd01",
+          "kind": "entry",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true
+        },
+        "0c05044001ed4ded9b2855ac5c505e88": {
+          "id": "0c05044001ed4ded9b2855ac5c505e88",
+          "kind": "return",
+          "name": "",
+          "x": 420,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true
+        }
+      },
+      "edges": [
+        {
+          "source": "5b97ca233ba245029895f84fdd7bcd01",
+          "output": "next",
+          "target": "0c05044001ed4ded9b2855ac5c505e88",
+          "input": "in",
+          "id": "ee23e120ad3e436ea519735e998d34cf"
+        },
+        {
+          "source": "5b97ca233ba245029895f84fdd7bcd01",
+          "output": "7e0dbac2073146eb892a0e680d5710ad",
+          "target": "0c05044001ed4ded9b2855ac5c505e88",
+          "input": "45447ef68fea4c8095832feff03edc19",
+          "id": "e1aeea58ab944c79be5c0f9f86f6a077"
+        },
+        {
+          "source": "5b97ca233ba245029895f84fdd7bcd01",
+          "output": "ea771bf50a674cbcb5c0844d538166bf",
+          "target": "0c05044001ed4ded9b2855ac5c505e88",
+          "input": "be3b36d41419496ea7e7bdbc81b0b03b",
+          "id": "679d08bbce874a588322eec62b4cb48e"
+        }
+      ],
+      "parameters": [
+        {
+          "id": "ea771bf50a674cbcb5c0844d538166bf",
+          "name": "Число",
+          "type": "number"
+        },
+        {
+          "id": "7e0dbac2073146eb892a0e680d5710ad",
+          "name": "Вектор",
+          "type": "vector"
+        }
+      ],
+      "results": [
+        {
+          "id": "45447ef68fea4c8095832feff03edc19",
+          "name": "Смещение",
+          "type": "vector"
+        },
+        {
+          "id": "be3b36d41419496ea7e7bdbc81b0b03b",
+          "name": "Повторы",
+          "type": "number"
+        }
+      ]
+    },
+    "4c0b6f2cc1ee498c8fd07b265b4bc15e": {
+      "id": "4c0b6f2cc1ee498c8fd07b265b4bc15e",
+      "name": "Вызов и повторение",
+      "kind": "behavior",
+      "nodes": {
+        "e93fd0c0521247799886977375fc02ae": {
+          "id": "e93fd0c0521247799886977375fc02ae",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {
+            "key": "Space"
+          },
+          "region": null,
+          "expanded": true
+        },
+        "0770de0dfde24882b618aad389d997e0": {
+          "id": "0770de0dfde24882b618aad389d997e0",
+          "kind": "number",
+          "name": "",
+          "x": 0,
+          "y": 250,
+          "params": {
+            "value": 3
+          },
+          "region": null,
+          "expanded": true
+        },
+        "d3630b7a2d4d4982b656b3d18e77ed17": {
+          "id": "d3630b7a2d4d4982b656b3d18e77ed17",
+          "kind": "vector",
+          "name": "",
+          "x": 0,
+          "y": 470,
+          "params": {
+            "x": 15,
+            "y": 5
+          },
+          "region": null,
+          "expanded": true
+        },
+        "dbe04a08049e4fdea80061d383bf88d7": {
+          "id": "dbe04a08049e4fdea80061d383bf88d7",
+          "kind": "call",
+          "name": "",
+          "x": 420,
+          "y": 0,
+          "params": {
+            "function": "6eac13719d5f499391227657f9250f32"
+          },
+          "region": null,
+          "expanded": true
+        },
+        "38d8f222e24f4ddd94fa04a1671117c2": {
+          "id": "38d8f222e24f4ddd94fa04a1671117c2",
+          "kind": "repeat",
+          "name": "",
+          "x": 840,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true
+        },
+        "987ff6f6a7db465d8b6298fe3ef90cc3": {
+          "id": "987ff6f6a7db465d8b6298fe3ef90cc3",
+          "kind": "move",
+          "name": "",
+          "x": 20,
+          "y": 20,
+          "params": {},
+          "region": "38d8f222e24f4ddd94fa04a1671117c2",
+          "expanded": true
+        },
+        "06a6cc6730b14ad5aa5785ff94f6c58a": {
+          "id": "06a6cc6730b14ad5aa5785ff94f6c58a",
+          "kind": "continue",
+          "name": "",
+          "x": 420,
+          "y": 20,
+          "params": {},
+          "region": "38d8f222e24f4ddd94fa04a1671117c2",
+          "expanded": true
+        }
+      },
+      "edges": [
+        {
+          "source": "e93fd0c0521247799886977375fc02ae",
+          "output": "next",
+          "target": "dbe04a08049e4fdea80061d383bf88d7",
+          "input": "in",
+          "id": "71230a286890454d80babe11ace25370"
+        },
+        {
+          "source": "0770de0dfde24882b618aad389d997e0",
+          "output": "value",
+          "target": "dbe04a08049e4fdea80061d383bf88d7",
+          "input": "arg:ea771bf50a674cbcb5c0844d538166bf",
+          "id": "240486452abf42fd9d7d02792a15a2eb"
+        },
+        {
+          "source": "d3630b7a2d4d4982b656b3d18e77ed17",
+          "output": "value",
+          "target": "dbe04a08049e4fdea80061d383bf88d7",
+          "input": "arg:7e0dbac2073146eb892a0e680d5710ad",
+          "id": "468d7604f4f94322a4f73979acb0a7a5"
+        },
+        {
+          "source": "dbe04a08049e4fdea80061d383bf88d7",
+          "output": "next",
+          "target": "38d8f222e24f4ddd94fa04a1671117c2",
+          "input": "in",
+          "id": "f69032cfd401429798cfdb6b6707a4ed"
+        },
+        {
+          "source": "dbe04a08049e4fdea80061d383bf88d7",
+          "output": "result:be3b36d41419496ea7e7bdbc81b0b03b",
+          "target": "38d8f222e24f4ddd94fa04a1671117c2",
+          "input": "n",
+          "id": "96d2950fb10d468fa2e7b8af568a0bc0"
+        },
+        {
+          "source": "38d8f222e24f4ddd94fa04a1671117c2",
+          "output": "body",
+          "target": "987ff6f6a7db465d8b6298fe3ef90cc3",
+          "input": "in",
+          "id": "bd9b1f5b1bd4426fa809eaf9d52e019d"
+        },
+        {
+          "source": "e93fd0c0521247799886977375fc02ae",
+          "output": "object",
+          "target": "987ff6f6a7db465d8b6298fe3ef90cc3",
+          "input": "object",
+          "id": "576b87e2288945d09634c07c4e82a907"
+        },
+        {
+          "source": "dbe04a08049e4fdea80061d383bf88d7",
+          "output": "result:45447ef68fea4c8095832feff03edc19",
+          "target": "987ff6f6a7db465d8b6298fe3ef90cc3",
+          "input": "delta",
+          "id": "11b1fc2ec18b4bd287ecc6c2e76fe9a6"
+        },
+        {
+          "source": "987ff6f6a7db465d8b6298fe3ef90cc3",
+          "output": "next",
+          "target": "06a6cc6730b14ad5aa5785ff94f6c58a",
+          "input": "in",
+          "id": "d467ed6a4d974a129c757d8081994a65"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {},
+  "format_version": 1
+}

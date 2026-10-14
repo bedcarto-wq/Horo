@@ -1,0 +1,84 @@
+"""One port catalog used by runtime, validation and UI. Port IDs are stable keys."""
+from dataclasses import dataclass
+from .model import Project, Graph, GraphNode
+
+LABELS = {'key': 'При нажатии клавиши', 'number': 'Число', 'text': 'Текст',
+          'bool': 'Логическое значение', 'object': 'Объект', 'vector': 'Вектор 2D',
+          'move': 'Переместить объект', 'read': 'Прочитать переменную',
+          'write': 'Записать переменную', 'add': 'Сложить числа', 'greater': 'Больше',
+          'if': 'Если', 'entry': 'Вход функции', 'return': 'Вернуть результат',
+          'call': 'Вызвать функцию', 'repeat': 'Повторить N раз',
+          'break': 'Прервать цикл', 'continue': 'Продолжить'}
+CATEGORIES = {'События': ['key'], 'Значения': ['number', 'text', 'bool', 'object', 'vector'],
+              'Действия': ['move'], 'Переменные': ['read', 'write'],
+              'Вычисления': ['add', 'greater'], 'Управление': ['if', 'repeat', 'break', 'continue'],
+              'Функции': ['entry', 'call', 'return']}
+PURE = {'number', 'text', 'bool', 'object', 'vector', 'read', 'add', 'greater'}
+
+@dataclass(frozen=True)
+class Port:
+    key: str
+    label: str
+    type: str
+    direction: str
+    required: bool = True
+
+
+def ports(project: Project, graph: Graph, node: GraphNode):
+    result = []
+    def p(key, label, kind, direction, required=True):
+        result.append(Port(key, label, kind, direction, required))
+    if node.kind in ('number', 'text', 'bool', 'object'):
+        p('value', 'Значение', node.kind, 'out')
+    elif node.kind == 'vector':
+        p('x', 'X (иначе поле)', 'number', 'in', False)
+        p('y', 'Y (иначе поле)', 'number', 'in', False)
+        p('value', 'Вектор', 'vector', 'out')
+    elif node.kind == 'key':
+        p('next', 'Выполнить', 'exec', 'out')
+        p('object', 'Этот объект', 'object', 'out')
+    elif node.kind in ('add', 'greater'):
+        p('a', 'A', 'number', 'in'); p('b', 'B', 'number', 'in')
+        p('value', 'Сумма' if node.kind == 'add' else 'A > B',
+          'number' if node.kind == 'add' else 'bool', 'out')
+    elif node.kind in ('read', 'write'):
+        var = project.variables.get(node.params.get('variable'))
+        if node.kind == 'write':
+            p('in', 'Выполнение', 'exec', 'in'); p('next', 'Далее', 'exec', 'out')
+        if var:
+            if var.scope == 'object':
+                p('object', 'Объект' if graph.kind == 'function' else 'Объект (иначе этот)',
+                  'object', 'in', graph.kind == 'function')
+            p('value', var.name, var.type, 'out' if node.kind == 'read' else 'in')
+    elif node.kind == 'move':
+        p('in', 'Выполнение', 'exec', 'in'); p('next', 'Далее', 'exec', 'out')
+        p('object', 'Объект', 'object', 'in'); p('delta', 'Смещение', 'vector', 'in')
+    elif node.kind == 'if':
+        p('in', 'Выполнение', 'exec', 'in'); p('condition', 'Условие', 'bool', 'in')
+        p('yes', 'Да', 'exec', 'out'); p('no', 'Нет', 'exec', 'out')
+    elif node.kind == 'repeat':
+        p('in', 'Выполнение', 'exec', 'in'); p('n', 'N', 'number', 'in')
+        p('body', 'Тело', 'exec', 'out'); p('next', 'После цикла', 'exec', 'out')
+    elif node.kind in ('break', 'continue'):
+        p('in', 'Выполнение', 'exec', 'in')
+    elif node.kind == 'entry':
+        p('next', 'Выполнить', 'exec', 'out')
+        for v in graph.parameters:
+            p(v.id, v.name, v.type, 'out')
+    elif node.kind == 'return':
+        p('in', 'Выполнение', 'exec', 'in')
+        for v in graph.results:
+            p(v.id, v.name, v.type, 'in')
+    elif node.kind == 'call':
+        p('in', 'Выполнение', 'exec', 'in'); p('next', 'Далее', 'exec', 'out')
+        fn = project.graphs.get(node.params.get('function'))
+        if fn and fn.kind == 'function':
+            for v in fn.parameters:
+                p('arg:'+v.id, v.name, v.type, 'in')
+            for v in fn.results:
+                p('result:'+v.id, v.name, v.type, 'out')
+    return result
+
+
+def port_map(project, graph, node):
+    return {(p.direction, p.key): p for p in ports(project, graph, node)}

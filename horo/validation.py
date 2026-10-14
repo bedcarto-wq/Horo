@@ -1,0 +1,153 @@
+"""Reject unsafe or ambiguous topology before playing. Incomplete graphs may be saved."""
+from .ports import ports, port_map, LABELS
+from .model import valid_value, number
+from .errors import Diagnostic
+
+
+def connection_error(project, graph, edge):
+    a, b = graph.nodes.get(edge.source), graph.nodes.get(edge.target)
+    if a is None or b is None:
+        return 'Связь ссылается на удалённый узел'
+    source = port_map(project, graph, a).get(('out', edge.output))
+    target = port_map(project, graph, b).get(('in', edge.input))
+    if source is None or target is None:
+        return 'Направление связи или ID порта неверны: нужен выход → вход'
+    if source.type != target.type:
+        return f'Несовместимые типы: {source.type} → {target.type}'
+    if any(e.id != edge.id and e.target == edge.target and e.input == edge.input for e in graph.edges):
+        return 'У этого входа уже есть источник'
+    if source.type == 'exec':
+        if any(e.id != edge.id and e.source == edge.source and e.output == edge.output for e in graph.edges):
+            return 'У выхода выполнения уже есть следующая команда'
+        expected_region = a.id if a.kind == 'repeat' and edge.output == 'body' else a.region
+        if b.region != expected_region:
+            return 'Красная связь не может пересекать границу тела цикла'
+    elif a.region is not None and a.region != b.region:
+        return 'Данные тела цикла нельзя читать за пределами его области'
+    return None
+
+
+def cycle_nodes(project, graph, exec_only=None):
+    adjacency = {k: [] for k in graph.nodes}
+    for e in graph.edges:
+        if e.source not in graph.nodes or e.target not in graph.nodes:
+            continue
+        port = port_map(project, graph, graph.nodes[e.source]).get(('out', e.output))
+        if port and (exec_only is None or (port.type == 'exec') == exec_only):
+            adjacency[e.source].append(e.target)
+    # Iterative DFS avoids recursion-limit crashes with long user graphs.
+    visited, active = set(), set()
+    for root in adjacency:
+        if root in visited:
+            continue
+        stack = [(root, False)]
+        while stack:
+            key, leave = stack.pop()
+            if leave:
+                active.discard(key); visited.add(key)
+                continue
+            if key in active:
+                return key
+            if key in visited:
+                continue
+            active.add(key); stack.append((key, True))
+            stack.extend((child, False) for child in adjacency[key])
+    return None
+
+
+def validate_graph(project, graph):
+    errors = []
+    def err(message, node=None):
+        errors.append(Diagnostic(message, graph.id, node))
+    starts = [n for n in graph.nodes.values() if n.kind in ('key', 'entry')]
+    expected = 'key' if graph.kind == 'behavior' else 'entry'
+    if len(starts) != 1 or starts[0].kind != expected or starts[0].region is not None:
+        err('Нужен ровно один старт клавиши' if expected == 'key' else 'Нужен ровно один вход функции')
+    for node in graph.nodes.values():
+        if node.kind not in LABELS:
+            err('Неизвестный вид узла', node.id); continue
+        if node.region is not None:
+            owner = graph.nodes.get(node.region)
+            if owner is None or owner.kind != 'repeat':
+                err('Не найдена область тела цикла', node.id)
+            elif owner.region is not None or node.kind == 'repeat':
+                err('Вложенные циклы в 0.1 не поддерживаются', node.id)
+        if node.kind in ('break', 'continue') and node.region is None:
+            err('Прерывание/продолжение доступно только в теле цикла', node.id)
+        if graph.kind == 'function' and node.kind in ('call', 'key', 'if'):
+            err('Функции 0.1 не вызывают функции, не имеют клавишных стартов и ветвления', node.id)
+        if graph.kind == 'behavior' and node.kind in ('entry', 'return'):
+            err('Вход/возврат предназначен только для графа-функции', node.id)
+        if node.kind == 'key':
+            key = node.params.get('key', 'Space')
+            allowed = ['Space', 'Left', 'Right', 'Up', 'Down', 'Return', 'Escape'] + list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if key not in allowed:
+                err('Клавиша не поддерживается', node.id)
+        if node.kind in ('number', 'text', 'bool', 'object'):
+            from .model import initial
+            value = node.params.get('value', initial(node.kind))
+            if not valid_value(node.kind, value):
+                err('Значение не соответствует типу узла', node.id)
+            elif node.kind == 'object' and value is not None and value not in project.nodes:
+                err('Ссылка на отсутствующий объект', node.id)
+        if node.kind == 'vector' and not all(number(node.params.get(k, 0)) for k in ('x', 'y')):
+            err('Поля вектора должны быть числами', node.id)
+        if node.kind in ('read', 'write'):
+            var = project.variables.get(node.params.get('variable'))
+            if var is None:
+                err('Переменная удалена или не выбрана', node.id)
+            elif var.scope == 'run' and var.owner != graph.id:
+                err('Переменная запуска принадлежит другому графу', node.id)
+        if node.kind == 'call':
+            fn = project.graphs.get(node.params.get('function'))
+            if fn is None or fn.kind != 'function':
+                err('Выберите существующий граф-функцию', node.id)
+        for port in ports(project, graph, node):
+            if port.direction == 'in' and port.type != 'exec' and port.required:
+                if not any(e.target == node.id and e.input == port.key for e in graph.edges):
+                    err(f'Обязательный вход «{port.label}» не подключён', node.id)
+    for e in graph.edges:
+        message = connection_error(project, graph, e)
+        if message:
+            err(message, e.target)
+    # Separate dependency cycles: data edges from a key to a move do not form an exec loop.
+    for mode in (True, False):
+        cyc = cycle_nodes(project, graph, mode)
+        if cyc:
+            err('Обнаружен цикл связей выполнения' if mode else 'Обнаружен цикл данных', cyc)
+    return errors
+
+
+def validate_project(project):
+    errors = []
+    try:
+        project.check_structure()
+    except (ValueError, TypeError) as exc:
+        return [Diagnostic(str(exc))]
+    for node in project.nodes.values():
+        if node.graph is not None:
+            graph = project.graphs.get(node.graph)
+            if graph is None or graph.kind != 'behavior':
+                errors.append(Diagnostic('К объекту должен быть прикреплён существующий граф поведения',
+                                         node.graph, object_id=node.id))
+    for var in project.variables.values():
+        if var.type == 'object' and var.value is not None and var.value not in project.nodes:
+            errors.append(Diagnostic(f'Начальная ссылка переменной «{var.name}» ведёт к отсутствующему объекту'))
+    for graph in project.graphs.values():
+        diagnostics = validate_graph(project, graph)
+        objects = [o.id for o in project.nodes.values() if o.graph == graph.id]
+        for d in diagnostics:
+            if objects:
+                d.object_id = objects[0]
+        errors.extend(diagnostics)
+    return errors
+
+
+def connect(project, graph, edge):
+    reason = connection_error(project, graph, edge)
+    if reason:
+        raise ValueError(reason)
+    graph.edges.append(edge)
+    if cycle_nodes(project, graph, True) or cycle_nodes(project, graph, False):
+        graph.edges.pop()
+        raise ValueError('Связь создаёт запрещённый цикл')

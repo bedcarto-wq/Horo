@@ -1,0 +1,236 @@
+{
+  "name": "A — Счётчик и условие",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "a63cde4a938d453a9f6ff076403ff4e1": {
+      "id": "a63cde4a938d453a9f6ff076403ff4e1",
+      "name": "Тестовое изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "7d0b2889bf7946dbab25d845c368e3bc"
+    }
+  },
+  "graphs": {
+    "7d0b2889bf7946dbab25d845c368e3bc": {
+      "id": "7d0b2889bf7946dbab25d845c368e3bc",
+      "name": "После третьего нажатия",
+      "kind": "behavior",
+      "nodes": {
+        "ff125d743fae4f13b469793699c15423": {
+          "id": "ff125d743fae4f13b469793699c15423",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {
+            "key": "Space"
+          },
+          "region": null,
+          "expanded": true
+        },
+        "0968756fed324264a5b01c0570f555a3": {
+          "id": "0968756fed324264a5b01c0570f555a3",
+          "kind": "read",
+          "name": "",
+          "x": 0,
+          "y": 240,
+          "params": {
+            "variable": "246a4767409740e5bcb2518899d81871"
+          },
+          "region": null,
+          "expanded": true
+        },
+        "1087e137b1874206a8f473e1c7b2fa18": {
+          "id": "1087e137b1874206a8f473e1c7b2fa18",
+          "kind": "number",
+          "name": "",
+          "x": 0,
+          "y": 480,
+          "params": {
+            "value": 1
+          },
+          "region": null,
+          "expanded": true
+        },
+        "2e08da1e52234206b3774517595037f8": {
+          "id": "2e08da1e52234206b3774517595037f8",
+          "kind": "add",
+          "name": "",
+          "x": 400,
+          "y": 280,
+          "params": {},
+          "region": null,
+          "expanded": true
+        },
+        "9181786bf8c648dcb8ecf92faeba9926": {
+          "id": "9181786bf8c648dcb8ecf92faeba9926",
+          "kind": "write",
+          "name": "",
+          "x": 400,
+          "y": 0,
+          "params": {
+            "variable": "246a4767409740e5bcb2518899d81871"
+          },
+          "region": null,
+          "expanded": true
+        },
+        "9eeff7a230824aa68e109440b462d65c": {
+          "id": "9eeff7a230824aa68e109440b462d65c",
+          "kind": "greater",
+          "name": "",
+          "x": 800,
+          "y": 280,
+          "params": {},
+          "region": null,
+          "expanded": true
+        },
+        "676cef49412c410b9cea2768753163f0": {
+          "id": "676cef49412c410b9cea2768753163f0",
+          "kind": "number",
+          "name": "",
+          "x": 800,
+          "y": 520,
+          "params": {
+            "value": 2
+          },
+          "region": null,
+          "expanded": true
+        },
+        "c230142079764413ab0535232bb8f971": {
+          "id": "c230142079764413ab0535232bb8f971",
+          "kind": "if",
+          "name": "",
+          "x": 800,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true
+        },
+        "521aa7a684534eee8a822770a0f0f4a3": {
+          "id": "521aa7a684534eee8a822770a0f0f4a3",
+          "kind": "move",
+          "name": "",
+          "x": 1200,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true
+        },
+        "5b474e2e3d12423898d41d683a9ff45c": {
+          "id": "5b474e2e3d12423898d41d683a9ff45c",
+          "kind": "vector",
+          "name": "",
+          "x": 1200,
+          "y": 280,
+          "params": {
+            "x": 20,
+            "y": 0
+          },
+          "region": null,
+          "expanded": true
+        }
+      },
+      "edges": [
+        {
+          "source": "ff125d743fae4f13b469793699c15423",
+          "output": "next",
+          "target": "9181786bf8c648dcb8ecf92faeba9926",
+          "input": "in",
+          "id": "194ee9e5ad2b44349cd2a4d9a166fd56"
+        },
+        {
+          "source": "0968756fed324264a5b01c0570f555a3",
+          "output": "value",
+          "target": "2e08da1e52234206b3774517595037f8",
+          "input": "a",
+          "id": "f2888db4fc424d648bbe461ba6ec7489"
+        },
+        {
+          "source": "1087e137b1874206a8f473e1c7b2fa18",
+          "output": "value",
+          "target": "2e08da1e52234206b3774517595037f8",
+          "input": "b",
+          "id": "fe35c5783dc34e98ab205e557bf01b48"
+        },
+        {
+          "source": "2e08da1e52234206b3774517595037f8",
+          "output": "value",
+          "target": "9181786bf8c648dcb8ecf92faeba9926",
+          "input": "value",
+          "id": "52be3234b23646d7911111a8b3aa1a26"
+        },
+        {
+          "source": "9181786bf8c648dcb8ecf92faeba9926",
+          "output": "next",
+          "target": "c230142079764413ab0535232bb8f971",
+          "input": "in",
+          "id": "f6c56e05c37744e49cae2ec67d9b8143"
+        },
+        {
+          "source": "0968756fed324264a5b01c0570f555a3",
+          "output": "value",
+          "target": "9eeff7a230824aa68e109440b462d65c",
+          "input": "a",
+          "id": "b98f134211d3496bafa92cd70bb41b03"
+        },
+        {
+          "source": "676cef49412c410b9cea2768753163f0",
+          "output": "value",
+          "target": "9eeff7a230824aa68e109440b462d65c",
+          "input": "b",
+          "id": "fccf992a9d1c478db9cdc0ee3d23e6de"
+        },
+        {
+          "source": "9eeff7a230824aa68e109440b462d65c",
+          "output": "value",
+          "target": "c230142079764413ab0535232bb8f971",
+          "input": "condition",
+          "id": "72d30d7656344c81bde64cf3f8ebe15f"
+        },
+        {
+          "source": "c230142079764413ab0535232bb8f971",
+          "output": "yes",
+          "target": "521aa7a684534eee8a822770a0f0f4a3",
+          "input": "in",
+          "id": "0bd33e645c184a2290e18859b4c0b964"
+        },
+        {
+          "source": "ff125d743fae4f13b469793699c15423",
+          "output": "object",
+          "target": "521aa7a684534eee8a822770a0f0f4a3",
+          "input": "object",
+          "id": "2302022c78af48f19551e80c10b80e84"
+        },
+        {
+          "source": "5b474e2e3d12423898d41d683a9ff45c",
+          "output": "value",
+          "target": "521aa7a684534eee8a822770a0f0f4a3",
+          "input": "delta",
+          "id": "a782b10d4a454c7cb060441ddc1926a4"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {
+    "246a4767409740e5bcb2518899d81871": {
+      "id": "246a4767409740e5bcb2518899d81871",
+      "name": "Нажатия",
+      "type": "number",
+      "scope": "object",
+      "value": 0,
+      "owner": null
+    }
+  },
+  "format_version": 1
+}

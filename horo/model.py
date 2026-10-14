@@ -91,6 +91,7 @@ class GraphNode:
     params: dict = field(default_factory=dict)
     region: str | None = None  # owner repeat node; None = root region
     expanded: bool = True
+    outputs: list[str] = field(default_factory=list)  # ordered stable exec ports
 
 @dataclass
 class Edge:
@@ -110,16 +111,44 @@ class Graph:
     parameters: list[Parameter] = field(default_factory=list)
     results: list[Parameter] = field(default_factory=list)
 
-    def add(self, kind, pos_x=0, pos_y=0, region=None, **params):
-        node = GraphNode(kind=kind, x=pos_x, y=pos_y, region=region, params=params)
+    def add(self, kind, pos_x=0, pos_y=0, region=None, outputs=None, **params):
+        if outputs is None:
+            outputs = [uid(), uid()] if kind in ('sequence', 'fork') else []
+        node = GraphNode(kind=kind, x=pos_x, y=pos_y, region=region, params=params, outputs=outputs)
         self.nodes[node.id] = node
         return node
 
     def remove(self, node_id):
-        removed = {node_id} | {n.id for n in self.nodes.values() if n.region == node_id}
+        removed = {node_id}
+        while True:
+            children = {n.id for n in self.nodes.values() if n.region in removed}
+            if children <= removed:
+                break
+            removed |= children
         for key in removed:
             self.nodes.pop(key, None)
         self.edges[:] = [e for e in self.edges if e.source not in removed and e.target not in removed]
+
+    def edit_output(self, node_id, action, output_id=None):
+        node = self.nodes[node_id]
+        if node.kind not in ('sequence', 'fork'):
+            raise ValueError('Редактируемые выходы есть только у последовательности и разветвителя')
+        if action == 'add':
+            node.outputs.append(uid())
+            return
+        index = node.outputs.index(output_id)
+        if action == 'remove':
+            if len(node.outputs) <= 2:
+                raise ValueError('Нужно минимум два выхода')
+            node.outputs.pop(index)
+            self.edges[:] = [e for e in self.edges if not (e.source == node.id and e.output == output_id)]
+        elif action in ('up', 'down'):
+            other = index + (-1 if action == 'up' else 1)
+            if not 0 <= other < len(node.outputs):
+                return
+            node.outputs[index], node.outputs[other] = node.outputs[other], node.outputs[index]
+        else:
+            raise ValueError('Неизвестная операция выхода')
 
 @dataclass
 class Project:
@@ -229,6 +258,12 @@ class Project:
                         ref_value = node.params.get(ref_key)
                         if ref_value is not None and not isinstance(ref_value, str):
                             raise ValueError('Ссылка карточки должна быть строковым ID')
+                if not isinstance(node.outputs, list):
+                    raise ValueError('Порядок выходов должен быть списком ID')
+                for output in node.outputs:
+                    if not isinstance(output, str) or not output or output in all_ids:
+                        raise ValueError('Повторяющийся или неверный ID выхода')
+                    all_ids.add(output)
                 if node.region is not None and not isinstance(node.region, str):
                     raise ValueError('ID области цикла должен быть строкой')
                 if not isinstance(node.expanded, bool):

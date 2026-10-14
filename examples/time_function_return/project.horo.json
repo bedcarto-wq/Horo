@@ -1,0 +1,267 @@
+{
+  "name": "Возврат отменяет ожидающую ветку",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "cbb4540247d44fc49f3be428f06157ad": {
+      "id": "cbb4540247d44fc49f3be428f06157ad",
+      "name": "Изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "26b41b1c21204aafa6030c35bb744f93"
+    }
+  },
+  "graphs": {
+    "26b41b1c21204aafa6030c35bb744f93": {
+      "id": "26b41b1c21204aafa6030c35bb744f93",
+      "name": "Возврат отменяет ожидающую ветку",
+      "kind": "behavior",
+      "nodes": {
+        "2ad437f9adad4a0a88ce1a191ebd6353": {
+          "id": "2ad437f9adad4a0a88ce1a191ebd6353",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "f357978aeeb14de3ae1e59771ad716f6": {
+          "id": "f357978aeeb14de3ae1e59771ad716f6",
+          "kind": "call",
+          "name": "",
+          "x": 430,
+          "y": 0,
+          "params": {
+            "function": "76ac090a190140bc857ae70b3181ee9f"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "b48c52365ce5495d9175ac0c59c41161": {
+          "id": "b48c52365ce5495d9175ac0c59c41161",
+          "kind": "move",
+          "name": "",
+          "x": 850,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "2ad437f9adad4a0a88ce1a191ebd6353",
+          "output": "next",
+          "target": "f357978aeeb14de3ae1e59771ad716f6",
+          "input": "in",
+          "id": "244367cfef1a4aa88b6036e20822f211"
+        },
+        {
+          "source": "f357978aeeb14de3ae1e59771ad716f6",
+          "output": "next",
+          "target": "b48c52365ce5495d9175ac0c59c41161",
+          "input": "in",
+          "id": "f275fdee55914c8991d8cf330db63fe1"
+        },
+        {
+          "source": "2ad437f9adad4a0a88ce1a191ebd6353",
+          "output": "object",
+          "target": "b48c52365ce5495d9175ac0c59c41161",
+          "input": "object",
+          "id": "adf8fc716d364406bd2977d6abc2f433"
+        },
+        {
+          "source": "f357978aeeb14de3ae1e59771ad716f6",
+          "output": "result:a5abe547fe38455cb669e44c7956b91a",
+          "target": "b48c52365ce5495d9175ac0c59c41161",
+          "input": "delta",
+          "id": "c190112054594d48a121cbed9c67007c"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    },
+    "76ac090a190140bc857ae70b3181ee9f": {
+      "id": "76ac090a190140bc857ae70b3181ee9f",
+      "name": "Первый возврат",
+      "kind": "function",
+      "nodes": {
+        "c997861769354ea6ac65745dc48adff5": {
+          "id": "c997861769354ea6ac65745dc48adff5",
+          "kind": "entry",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "ecdf93f0cef84457ab74206df9289d2d": {
+          "id": "ecdf93f0cef84457ab74206df9289d2d",
+          "kind": "fork",
+          "name": "",
+          "x": 430,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": [
+            "f5db8ec4b9ee4a58905167fdce3c7b6b",
+            "03f28557a9974c3ba68a7b0371d0e94e"
+          ]
+        },
+        "e79f9f801d674453b80893cb99f3d01d": {
+          "id": "e79f9f801d674453b80893cb99f3d01d",
+          "kind": "wait",
+          "name": "",
+          "x": 850,
+          "y": 0,
+          "params": {
+            "n": 0.5
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "7062f78619c548e7b47aa7fe439e43ba": {
+          "id": "7062f78619c548e7b47aa7fe439e43ba",
+          "kind": "return",
+          "name": "",
+          "x": 1270,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "5114577f6c2249a98b15cbbf60acccc7": {
+          "id": "5114577f6c2249a98b15cbbf60acccc7",
+          "kind": "vector",
+          "name": "",
+          "x": 850,
+          "y": 230,
+          "params": {
+            "x": 20,
+            "y": 0
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "077e7631f7634755bc3a47d26d5d0bbb": {
+          "id": "077e7631f7634755bc3a47d26d5d0bbb",
+          "kind": "wait",
+          "name": "",
+          "x": 850,
+          "y": 450,
+          "params": {
+            "n": 3
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "ecfded41b67d401c969ebcf15f3cd1fa": {
+          "id": "ecfded41b67d401c969ebcf15f3cd1fa",
+          "kind": "return",
+          "name": "",
+          "x": 1270,
+          "y": 450,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "7222da7510f04f679bbad4e6e842e8cd": {
+          "id": "7222da7510f04f679bbad4e6e842e8cd",
+          "kind": "vector",
+          "name": "",
+          "x": 850,
+          "y": 680,
+          "params": {
+            "x": 200,
+            "y": 0
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "c997861769354ea6ac65745dc48adff5",
+          "output": "next",
+          "target": "ecdf93f0cef84457ab74206df9289d2d",
+          "input": "in",
+          "id": "8dbcb427b47a461e9151ace4f798d9a9"
+        },
+        {
+          "source": "ecdf93f0cef84457ab74206df9289d2d",
+          "output": "f5db8ec4b9ee4a58905167fdce3c7b6b",
+          "target": "e79f9f801d674453b80893cb99f3d01d",
+          "input": "in",
+          "id": "1af80c76a3f846ba9d281f5ce63a65c3"
+        },
+        {
+          "source": "e79f9f801d674453b80893cb99f3d01d",
+          "output": "next",
+          "target": "7062f78619c548e7b47aa7fe439e43ba",
+          "input": "in",
+          "id": "ce90a1904f0841d2965d4d122de34096"
+        },
+        {
+          "source": "5114577f6c2249a98b15cbbf60acccc7",
+          "output": "value",
+          "target": "7062f78619c548e7b47aa7fe439e43ba",
+          "input": "a5abe547fe38455cb669e44c7956b91a",
+          "id": "bd86c69296614244a1da43e387aec052"
+        },
+        {
+          "source": "ecdf93f0cef84457ab74206df9289d2d",
+          "output": "03f28557a9974c3ba68a7b0371d0e94e",
+          "target": "077e7631f7634755bc3a47d26d5d0bbb",
+          "input": "in",
+          "id": "7d988c281fb74485913fa26806db66fc"
+        },
+        {
+          "source": "077e7631f7634755bc3a47d26d5d0bbb",
+          "output": "next",
+          "target": "ecfded41b67d401c969ebcf15f3cd1fa",
+          "input": "in",
+          "id": "81c8211f3fcf4ec4a8223727c8b12810"
+        },
+        {
+          "source": "7222da7510f04f679bbad4e6e842e8cd",
+          "output": "value",
+          "target": "ecfded41b67d401c969ebcf15f3cd1fa",
+          "input": "a5abe547fe38455cb669e44c7956b91a",
+          "id": "3d850b14aa644b9fb4982eb037b3c62c"
+        }
+      ],
+      "parameters": [],
+      "results": [
+        {
+          "id": "a5abe547fe38455cb669e44c7956b91a",
+          "name": "Смещение",
+          "type": "vector"
+        }
+      ]
+    }
+  },
+  "variables": {},
+  "format_version": 1
+}

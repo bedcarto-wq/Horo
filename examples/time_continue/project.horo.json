@@ -1,0 +1,303 @@
+{
+  "name": "Отмена итерации: continue",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "da58f9308f7c435cbc8dae128636eb5a": {
+      "id": "da58f9308f7c435cbc8dae128636eb5a",
+      "name": "Изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "04e78291d1a34699935fa7e54da34815"
+    }
+  },
+  "graphs": {
+    "04e78291d1a34699935fa7e54da34815": {
+      "id": "04e78291d1a34699935fa7e54da34815",
+      "name": "Отмена итерации: continue",
+      "kind": "behavior",
+      "nodes": {
+        "0d663c53c40d411ab2f33c5adaeea5ec": {
+          "id": "0d663c53c40d411ab2f33c5adaeea5ec",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "9b6fa10209254d9f92b12bb1383d63cb": {
+          "id": "9b6fa10209254d9f92b12bb1383d63cb",
+          "kind": "read",
+          "name": "",
+          "x": 0,
+          "y": 300,
+          "params": {
+            "variable": "5c842fd9b63e4cb081798bef03bcc465"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "4b6eebf88ad6412493b889e787362810": {
+          "id": "4b6eebf88ad6412493b889e787362810",
+          "kind": "number",
+          "name": "",
+          "x": 0,
+          "y": 650,
+          "params": {
+            "value": 0
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "6d8c6107368c4c0fabae92421713575f": {
+          "id": "6d8c6107368c4c0fabae92421713575f",
+          "kind": "greater",
+          "name": "",
+          "x": 430,
+          "y": 300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "e1ac4ee81f904dcd91181c9b8e211d27": {
+          "id": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "kind": "while",
+          "name": "",
+          "x": 850,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "4393f29f38744d43ac93f46e3a85fe8a": {
+          "id": "4393f29f38744d43ac93f46e3a85fe8a",
+          "kind": "number",
+          "name": "",
+          "x": 400,
+          "y": 400,
+          "params": {
+            "value": -1
+          },
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": []
+        },
+        "5a638d9a396343b88e338f49c6e4cab4": {
+          "id": "5a638d9a396343b88e338f49c6e4cab4",
+          "kind": "add",
+          "name": "",
+          "x": 800,
+          "y": 400,
+          "params": {},
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": []
+        },
+        "9aa4c9bf50bd4edbad6e002e0ee1cabe": {
+          "id": "9aa4c9bf50bd4edbad6e002e0ee1cabe",
+          "kind": "write",
+          "name": "",
+          "x": 430,
+          "y": 20,
+          "params": {
+            "variable": "5c842fd9b63e4cb081798bef03bcc465"
+          },
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": []
+        },
+        "7dd9710cb7ed45ea870a28d4342b317f": {
+          "id": "7dd9710cb7ed45ea870a28d4342b317f",
+          "kind": "wait",
+          "name": "",
+          "x": 430,
+          "y": 600,
+          "params": {
+            "n": 2
+          },
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": []
+        },
+        "8865e6bbb12b4850b88763729fe1feb4": {
+          "id": "8865e6bbb12b4850b88763729fe1feb4",
+          "kind": "move",
+          "name": "",
+          "x": 850,
+          "y": 600,
+          "params": {},
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": []
+        },
+        "88f45ff60a504f03ba818c1e57202f9b": {
+          "id": "88f45ff60a504f03ba818c1e57202f9b",
+          "kind": "vector",
+          "name": "",
+          "x": 20,
+          "y": 230,
+          "params": {
+            "x": 20,
+            "y": 0
+          },
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": []
+        },
+        "0e1f6039e8f449019354c587c3f05f59": {
+          "id": "0e1f6039e8f449019354c587c3f05f59",
+          "kind": "fork",
+          "name": "",
+          "x": 20,
+          "y": 20,
+          "params": {},
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": [
+            "386e74b9ad1a494383cb62939243f3dd",
+            "9ada715cb4884b8ca81daa408acb4582"
+          ]
+        },
+        "b3e9679342784c5bba5cc05a4216e2eb": {
+          "id": "b3e9679342784c5bba5cc05a4216e2eb",
+          "kind": "continue",
+          "name": "",
+          "x": 850,
+          "y": 20,
+          "params": {},
+          "region": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "9b6fa10209254d9f92b12bb1383d63cb",
+          "output": "value",
+          "target": "6d8c6107368c4c0fabae92421713575f",
+          "input": "a",
+          "id": "d540e825c1064ee484914babba019bd8"
+        },
+        {
+          "source": "4b6eebf88ad6412493b889e787362810",
+          "output": "value",
+          "target": "6d8c6107368c4c0fabae92421713575f",
+          "input": "b",
+          "id": "db3eacfa96574229ba237eb8bb5ecf45"
+        },
+        {
+          "source": "0d663c53c40d411ab2f33c5adaeea5ec",
+          "output": "next",
+          "target": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "input": "in",
+          "id": "dd51098798934548aa6686ed60dc2c37"
+        },
+        {
+          "source": "6d8c6107368c4c0fabae92421713575f",
+          "output": "value",
+          "target": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "input": "condition",
+          "id": "33d43817ca6149c4a4fa1b2f2f775487"
+        },
+        {
+          "source": "9b6fa10209254d9f92b12bb1383d63cb",
+          "output": "value",
+          "target": "5a638d9a396343b88e338f49c6e4cab4",
+          "input": "a",
+          "id": "13a0609f6b704f78999989629a25ec35"
+        },
+        {
+          "source": "4393f29f38744d43ac93f46e3a85fe8a",
+          "output": "value",
+          "target": "5a638d9a396343b88e338f49c6e4cab4",
+          "input": "b",
+          "id": "ce56f665b2134102ba20fd0d45e5689b"
+        },
+        {
+          "source": "5a638d9a396343b88e338f49c6e4cab4",
+          "output": "value",
+          "target": "9aa4c9bf50bd4edbad6e002e0ee1cabe",
+          "input": "value",
+          "id": "f44ff7db2c6e4a3d963a700e7fe8b80f"
+        },
+        {
+          "source": "0d663c53c40d411ab2f33c5adaeea5ec",
+          "output": "object",
+          "target": "8865e6bbb12b4850b88763729fe1feb4",
+          "input": "object",
+          "id": "72aebdc83d064082a4566e116f00e6b8"
+        },
+        {
+          "source": "88f45ff60a504f03ba818c1e57202f9b",
+          "output": "value",
+          "target": "8865e6bbb12b4850b88763729fe1feb4",
+          "input": "delta",
+          "id": "bef5971bfb05408bbf359401b5e7bfbe"
+        },
+        {
+          "source": "e1ac4ee81f904dcd91181c9b8e211d27",
+          "output": "body",
+          "target": "0e1f6039e8f449019354c587c3f05f59",
+          "input": "in",
+          "id": "c0e3788dbc13463c87da2fca929ad2f3"
+        },
+        {
+          "source": "0e1f6039e8f449019354c587c3f05f59",
+          "output": "386e74b9ad1a494383cb62939243f3dd",
+          "target": "9aa4c9bf50bd4edbad6e002e0ee1cabe",
+          "input": "in",
+          "id": "418650301cda4724badfd8498e6b28cb"
+        },
+        {
+          "source": "0e1f6039e8f449019354c587c3f05f59",
+          "output": "9ada715cb4884b8ca81daa408acb4582",
+          "target": "7dd9710cb7ed45ea870a28d4342b317f",
+          "input": "in",
+          "id": "739421833e0b425ca538d49266e26bfd"
+        },
+        {
+          "source": "7dd9710cb7ed45ea870a28d4342b317f",
+          "output": "next",
+          "target": "8865e6bbb12b4850b88763729fe1feb4",
+          "input": "in",
+          "id": "0a9c5fea08b144fc9e0c899f248cc57e"
+        },
+        {
+          "source": "9aa4c9bf50bd4edbad6e002e0ee1cabe",
+          "output": "next",
+          "target": "b3e9679342784c5bba5cc05a4216e2eb",
+          "input": "in",
+          "id": "5ec7c0a9a8044629a9633deb90514077"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {
+    "5c842fd9b63e4cb081798bef03bcc465": {
+      "id": "5c842fd9b63e4cb081798bef03bcc465",
+      "name": "Осталось",
+      "type": "number",
+      "scope": "object",
+      "value": 3,
+      "owner": null
+    }
+  },
+  "format_version": 1
+}

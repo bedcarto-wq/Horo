@@ -6,7 +6,8 @@ from PySide6.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsItem,
     QFormLayout, QLineEdit, QComboBox, QPushButton, QLabel, QMenu, QInputDialog,
     QListWidget, QListWidgetItem, QDialog, QDialogButtonBox, QTreeWidget, QTreeWidgetItem)
 from ..model import Edge, initial
-from ..ports import LABELS, CATEGORIES, ports
+from ..ports import LABELS, CATEGORIES, ports, STARTS, LOOPS
+from ..validation import region_ancestors
 from .dialogs import typed_value, format_value
 
 EXEC_COLOR = QColor('#ff7d88')
@@ -142,7 +143,7 @@ class CardItem(QGraphicsItem):
         elif node.kind == 'vector':
             text_field('X по умолчанию', 'x', 'number', 0)
             text_field('Y по умолчанию', 'y', 'number', 0)
-        elif node.kind == 'key':
+        elif node.kind in ('key', 'key_release'):
             combo = QComboBox(); combo.addItems(['Space', 'Left', 'Right', 'Up', 'Down', 'Return', 'Escape']+list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'))
             combo.setCurrentText(node.params.get('key', 'Space'))
             combo.currentTextChanged.connect(lambda value: self.update_param('key', value))
@@ -166,9 +167,25 @@ class CardItem(QGraphicsItem):
             combo.setCurrentIndex(max(0, combo.findData(node.params.get('function'))))
             combo.currentIndexChanged.connect(lambda _: self.update_param('function', combo.currentData()))
             form.addRow('Функция', combo)
-        elif node.kind == 'repeat':
+        elif node.kind in LOOPS:
             button = QPushButton('Открыть тело цикла →')
             button.clicked.connect(lambda: self.view.region_requested.emit(node.id))
+            form.addRow(button)
+        elif node.kind == 'wait':
+            text_field('Секунд (если нет входа)', 'n', 'number', 1)
+        elif node.kind in ('sequence', 'fork'):
+            for index, output_id in enumerate(node.outputs):
+                row = QWidget(); layout = QHBoxLayout(row); layout.setContentsMargins(0, 0, 0, 0)
+                layout.addWidget(QLabel(str(index+1)))
+                for text, action, enabled in [('↑', 'up', index > 0), ('↓', 'down', index < len(node.outputs)-1),
+                                              ('×', 'remove', len(node.outputs) > 2)]:
+                    button = QPushButton(text); button.setEnabled(enabled)
+                    button.clicked.connect(lambda checked=False, a=action, key=output_id:
+                                           self.view.output_requested.emit(node.id, a, key))
+                    layout.addWidget(button)
+                form.addRow(row)
+            button = QPushButton('+ Выход')
+            button.clicked.connect(lambda: self.view.output_requested.emit(node.id, 'add', None))
             form.addRow(button)
         if form.rowCount() == 0:
             return None
@@ -248,6 +265,7 @@ class GraphCanvas(QGraphicsView):
     edge_requested = Signal(object)
     param_requested = Signal(str, str, object)
     variable_requested = Signal(str)
+    output_requested = Signal(str, str, object)
     region_requested = Signal(object)
     moved = Signal(str, float, float)
     expanded_requested = Signal(str, bool)
@@ -276,7 +294,7 @@ class GraphCanvas(QGraphicsView):
                     continue
                 if node.id == region:
                     display = QPointF(-400, 0)
-                elif node.region is None and any(p.direction == 'out' and p.type != 'exec' for p in ports(project, graph, node)):
+                elif node.region in [None]+region_ancestors(graph, graph.nodes[region].region) and any(p.direction == 'out' and p.type != 'exec' for p in ports(project, graph, node)):
                     display = QPointF(-400, 220+external_index*190); external_index += 1
                 else:
                     continue
@@ -301,9 +319,9 @@ class GraphCanvas(QGraphicsView):
         if self.graph.kind == 'behavior':
             kinds = [k for k in kinds if k not in ('entry', 'return')]
         else:
-            kinds = [k for k in kinds if k not in ('key', 'call', 'if')]
+            kinds = [k for k in kinds if k not in STARTS]
         if self.region is not None:
-            kinds = [k for k in kinds if k not in ('key', 'entry', 'repeat')]
+            kinds = [k for k in kinds if k not in STARTS and k != 'entry']
         else:
             kinds = [k for k in kinds if k not in ('break', 'continue')]
         return kinds
@@ -412,10 +430,16 @@ class GraphEditor(QWidget):
         self.fit = QPushButton('Показать всё')
         tools.addWidget(self.back); tools.addWidget(self.breadcrumb); tools.addStretch(); tools.addWidget(self.fit)
         layout.addLayout(tools); self.canvas = GraphCanvas(); layout.addWidget(self.canvas)
-        self.back.clicked.connect(lambda: self.canvas.region_requested.emit(None))
+        self.back.clicked.connect(self.go_back)
         self.fit.clicked.connect(lambda: self.canvas.fitInView(self.canvas.scene().itemsBoundingRect().adjusted(-30, -30, 30, 30), Qt.AspectRatioMode.KeepAspectRatio))
+
+    def go_back(self):
+        owner = self.canvas.graph.nodes.get(self.canvas.region) if self.canvas.graph else None
+        self.canvas.region_requested.emit(owner.region if owner else None)
 
     def build(self, project, graph, region):
         self.back.setVisible(region is not None)
-        self.breadcrumb.setText(graph.name + (' → Тело цикла' if region else '') + ' · ПКМ: добавить; Delete: удалить')
+        path = [graph.name] + [graph.nodes[key].name or LABELS[graph.nodes[key].kind]
+                               for key in reversed(region_ancestors(graph, region))]
+        self.breadcrumb.setText(' → '.join(path) + ' · ПКМ: добавить; Delete: удалить')
         self.canvas.build(project, graph, region)

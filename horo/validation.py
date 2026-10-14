@@ -1,7 +1,20 @@
 """Reject unsafe or ambiguous topology before playing. Incomplete graphs may be saved."""
-from .ports import ports, port_map, LABELS
+from .ports import ports, port_map, LABELS, STARTS, LOOPS
 from .model import valid_value, number
 from .errors import Diagnostic
+
+
+def region_ancestors(graph, region):
+    result = []
+    while region is not None:
+        if region in result:
+            raise ValueError('Цикл владельцев областей тела')
+        result.append(region)
+        owner = graph.nodes.get(region)
+        if owner is None or owner.kind not in LOOPS:
+            raise ValueError('Не найдена область тела цикла')
+        region = owner.region
+    return result
 
 
 def connection_error(project, graph, edge):
@@ -19,11 +32,15 @@ def connection_error(project, graph, edge):
     if source.type == 'exec':
         if any(e.id != edge.id and e.source == edge.source and e.output == edge.output for e in graph.edges):
             return 'У выхода выполнения уже есть следующая команда'
-        expected_region = a.id if a.kind == 'repeat' and edge.output == 'body' else a.region
+        expected_region = a.id if a.kind in LOOPS and edge.output == 'body' else a.region
         if b.region != expected_region:
             return 'Красная связь не может пересекать границу тела цикла'
-    elif a.region is not None and a.region != b.region:
-        return 'Данные тела цикла нельзя читать за пределами его области'
+    elif a.region is not None:
+        try:
+            if a.region not in region_ancestors(graph, b.region):
+                return 'Данные тела цикла нельзя читать за пределами его области'
+        except ValueError as exc:
+            return str(exc)
     return None
 
 
@@ -59,26 +76,33 @@ def validate_graph(project, graph):
     errors = []
     def err(message, node=None):
         errors.append(Diagnostic(message, graph.id, node))
-    starts = [n for n in graph.nodes.values() if n.kind in ('key', 'entry')]
-    expected = 'key' if graph.kind == 'behavior' else 'entry'
-    if len(starts) != 1 or starts[0].kind != expected or starts[0].region is not None:
-        err('Нужен ровно один старт клавиши' if expected == 'key' else 'Нужен ровно один вход функции')
+    starts = [n for n in graph.nodes.values() if n.kind in STARTS or n.kind == 'entry']
+    if graph.kind == 'behavior':
+        if not starts or any(n.kind not in STARTS or n.region is not None for n in starts):
+            err('Нужен хотя бы один старт события во внешней области поведения')
+    elif len(starts) != 1 or starts[0].kind != 'entry' or starts[0].region is not None:
+        err('Нужен ровно один вход функции')
     for node in graph.nodes.values():
         if node.kind not in LABELS:
             err('Неизвестный вид узла', node.id); continue
         if node.region is not None:
-            owner = graph.nodes.get(node.region)
-            if owner is None or owner.kind != 'repeat':
-                err('Не найдена область тела цикла', node.id)
-            elif owner.region is not None or node.kind == 'repeat':
-                err('Вложенные циклы в 0.1 не поддерживаются', node.id)
+            try:
+                region_ancestors(graph, node.region)
+            except ValueError as exc:
+                err(str(exc), node.id)
         if node.kind in ('break', 'continue') and node.region is None:
             err('Прерывание/продолжение доступно только в теле цикла', node.id)
-        if graph.kind == 'function' and node.kind in ('call', 'key', 'if'):
-            err('Функции 0.1 не вызывают функции, не имеют клавишных стартов и ветвления', node.id)
+        if graph.kind == 'function' and node.kind in STARTS:
+            err('Стартовые события предназначены только для поведения', node.id)
+        if node.kind in ('sequence', 'fork') and len(node.outputs) < 2:
+            err('Нужно минимум два нумерованных выхода', node.id)
+        if node.kind not in ('sequence', 'fork') and node.outputs:
+            err('Этот узел не поддерживает редактируемые выходы', node.id)
+        if node.kind == 'wait' and not number(node.params.get('n', 1)):
+            err('Поле ожидания должно быть конечным числом', node.id)
         if graph.kind == 'behavior' and node.kind in ('entry', 'return'):
             err('Вход/возврат предназначен только для графа-функции', node.id)
-        if node.kind == 'key':
+        if node.kind in ('key', 'key_release'):
             key = node.params.get('key', 'Space')
             allowed = ['Space', 'Left', 'Right', 'Up', 'Down', 'Return', 'Escape'] + list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
             if key not in allowed:
@@ -140,6 +164,7 @@ def validate_project(project):
             if objects:
                 d.object_id = objects[0]
         errors.extend(diagnostics)
+    errors.extend(function_dependency_errors(project))
     return errors
 
 
@@ -151,3 +176,26 @@ def connect(project, graph, edge):
     if cycle_nodes(project, graph, True) or cycle_nodes(project, graph, False):
         graph.edges.pop()
         raise ValueError('Связь создаёт запрещённый цикл')
+
+
+def function_dependency_errors(project):
+    adjacency = {g.id: [(n.params.get('function'), n.id) for n in g.nodes.values()
+                       if n.kind == 'call' and n.params.get('function') in project.graphs]
+                 for g in project.graphs.values()}
+    visited, active = set(), set()
+    for root in adjacency:
+        if root in visited:
+            continue
+        active.add(root)
+        stack = [(root, iter(adjacency[root]))]
+        while stack:
+            current, children = stack[-1]
+            try:
+                target, node_id = next(children)
+            except StopIteration:
+                active.remove(current); visited.add(current); stack.pop(); continue
+            if target in active:
+                return [Diagnostic('Прямая или косвенная рекурсия функций запрещена', current, node_id)]
+            if target not in visited:
+                active.add(target); stack.append((target, iter(adjacency[target])))
+    return []

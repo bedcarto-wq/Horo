@@ -12,9 +12,10 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QDockWidget, QWidget, 
 from ..model import Project, Graph, SceneNode, Variable, TYPE_LABELS, uid
 from ..history import History
 from ..storage import save_project, load_project, import_asset, asset_path, PROJECT_FILE
-from ..validation import connect, validate_project
+from ..validation import connect, validate_project, region_ancestors
 from ..errors import Diagnostic, GraphError
 from ..runtime import Runtime
+from ..ports import LOOPS
 from .scene import SceneEditor
 from .graph import GraphEditor, Catalog
 from .dialogs import ProjectDialog, VariableDialog, ParameterDialog
@@ -132,7 +133,7 @@ class MainWindow(QMainWindow):
         self.run_action = self.action(run, 'Запустить', self.run_game, 'F5')
         self.stop_action = self.action(run, 'Остановить', self.stop_game, 'F6')
         help_menu = self.menuBar().addMenu('Помощь')
-        self.action(help_menu, 'Управление', lambda: QMessageBox.information(self, 'Horo 0.1',
+        self.action(help_menu, 'Управление', lambda: QMessageBox.information(self, 'Horo 0.2.0',
             'Сцена: колесо — масштаб вида; средняя кнопка — перемещение вида.\n'
             'Преобразование: выберите режим и перетащите объект.\n'
             'Граф: ПКМ на фоне — поиск; категории — drag & drop.\n'
@@ -167,6 +168,7 @@ class MainWindow(QMainWindow):
         graph.edge_requested.connect(self.add_edge)
         graph.param_requested.connect(self.set_node_param)
         graph.variable_requested.connect(self.create_variable)
+        graph.output_requested.connect(self.edit_output)
         graph.region_requested.connect(self.open_region)
         graph.moved.connect(lambda key, x, y: self.deferred_edit('Положение карточки', lambda: self.move_card(key, x, y)))
         graph.expanded_requested.connect(lambda key, value: self.deferred_edit('Подробности карточки', lambda: setattr(self.current_graph().nodes[key], 'expanded', value)))
@@ -237,7 +239,7 @@ class MainWindow(QMainWindow):
         graph = self.current_graph()
         if graph and self.region not in graph.nodes:
             self.region = None
-        self.setWindowTitle(f'Horo 0.1 — {self.project.name}' + (' *' if self.dirty() else ''))
+        self.setWindowTitle(f'Horo 0.2.0 — {self.project.name}' + (' *' if self.dirty() else ''))
         self.tree.blockSignals(True); self.tree.clear()
         tree_items = {}
         def add(key):
@@ -442,7 +444,11 @@ class MainWindow(QMainWindow):
 
     def open_region(self, region):
         graph = self.current_graph()
-        if graph and (region is None or (region in graph.nodes and graph.nodes[region].kind == 'repeat')):
+        if graph and (region is None or (region in graph.nodes and graph.nodes[region].kind in LOOPS)):
+            try:
+                region_ancestors(graph, region)
+            except ValueError as exc:
+                self.message(str(exc)); return
             self.region = region; self.refresh()
             self.graph_editor.canvas.resetTransform()
             self.graph_editor.canvas.scale(.85, .85)
@@ -452,9 +458,13 @@ class MainWindow(QMainWindow):
         graph = self.current_graph()
         if not graph or kind not in self.graph_editor.canvas.allowed():
             return
-        if kind in ('key', 'entry') and any(n.kind == kind for n in graph.nodes.values()):
-            self.message('В 0.1 разрешён один старт/вход; сначала удалите существующий'); return
+        if kind == 'entry' and any(n.kind == kind for n in graph.nodes.values()):
+            self.message('У функции один вход; сначала удалите существующий'); return
         self.edit('Создание узла графа', lambda: self.current_graph().add(kind, x, y, self.region))
+
+    def edit_output(self, key, action, output_id):
+        gid = self.graph_id
+        self.deferred_edit('Выходы узла', lambda: self.project.graphs[gid].edit_output(key, action, output_id))
 
     def move_card(self, key, x, y):
         node = self.current_graph().nodes[key]; node.x, node.y = x, y
@@ -602,7 +612,13 @@ class MainWindow(QMainWindow):
         d = item.data(Qt.ItemDataRole.UserRole)
         g = self.project.graphs.get(d.graph_id)
         if g and d.node_id in g.nodes:
-            self.graph_id = g.id; self.region = g.nodes[d.node_id].region
+            self.graph_id = g.id
+            try:
+                region_ancestors(g, g.nodes[d.node_id].region)
+                self.region = g.nodes[d.node_id].region
+            except ValueError:
+                self.region = None
+                self.message('Область узла повреждена; открыт внешний граф')
             self.refresh(); self.tabs.setCurrentIndex(1); self.graph_editor.canvas.focus_node(d.node_id)
         elif d.object_id in self.project.nodes:
             self.select_object(d.object_id); self.tabs.setCurrentIndex(0)

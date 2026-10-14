@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, Signal, QRectF
+from PySide6.QtCore import Qt, Signal, QRectF, QTimer
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from .scene import SceneCanvas
 from ..errors import GraphError, Diagnostic
@@ -19,6 +19,11 @@ class GameWindow(QWidget):
         layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0); layout.addWidget(self.canvas)
         self.resize(min(runtime.project.width+20, 1280), min(runtime.project.height+20, 900))
         self.canvas.build(runtime.project, folder)
+        self.timer = QTimer(self)
+        self.timer.setTimerType(Qt.TimerType.PreciseTimer)
+        self.timer.setInterval(16)
+        self.timer.timeout.connect(lambda: self.handle(self.runtime.update))
+        QTimer.singleShot(0, self.begin)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -41,26 +46,41 @@ class GameWindow(QWidget):
         if not name or event.isAutoRepeat() or event.key() in self.held:
             event.accept(); return
         self.held.add(event.key())
-        try:
-            self.runtime.key_press(name)
-            self.canvas.build(self.runtime.project, self.folder)
-        except GraphError as exc:
-            self.runtime.stop(); self.failed.emit(exc.diagnostic)
-            self.setWindowTitle('Horo — Ошибка: игра остановлена')
-        except Exception:
-            # Unexpected defects are visible and recorded, never treated as successful execution.
-            logging.exception('Unexpected runtime error')
-            self.runtime.stop(); self.failed.emit(Diagnostic('Внутренняя ошибка выполнения. Подробности в локальном логе.'))
-            self.setWindowTitle('Horo — Внутренняя ошибка: игра остановлена')
+        self.handle(lambda: self.runtime.key_press(name))
         event.accept()
 
     def keyReleaseEvent(self, event):
         if not event.isAutoRepeat():
+            name = self.key_name(event)
             self.held.discard(event.key())
+            if name:
+                self.handle(lambda: self.runtime.key_release(name))
         event.accept()
+
+    def begin(self):
+        if self.runtime.running:
+            self.handle(self.runtime.start)
+            if self.runtime.running:
+                self.timer.start()
+
+    def handle(self, callback):
+        if not self.runtime.running:
+            return
+        try:
+            callback()
+            self.canvas.build(self.runtime.project, self.folder)
+        except GraphError as exc:
+            self.runtime.stop(); self.timer.stop(); self.held.clear()
+            self.failed.emit(exc.diagnostic)
+            self.setWindowTitle('Horo — Ошибка: игра остановлена')
+        except Exception:
+            logging.exception('Unexpected runtime error')
+            self.runtime.stop(); self.timer.stop(); self.held.clear()
+            self.failed.emit(Diagnostic('Внутренняя ошибка выполнения. Подробности в локальном логе.'))
+            self.setWindowTitle('Horo — Внутренняя ошибка: игра остановлена')
 
     def focusOutEvent(self, event):
         self.held.clear(); super().focusOutEvent(event)
 
     def closeEvent(self, event):
-        self.runtime.stop(); self.held.clear(); self.finished.emit(); event.accept()
+        self.timer.stop(); self.runtime.stop(); self.held.clear(); self.finished.emit(); event.accept()

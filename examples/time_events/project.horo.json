@@ -1,0 +1,217 @@
+{
+  "name": "Старт, кадр и отпускание",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "a4d919fee8df4f55bca4548dc8716f31": {
+      "id": "a4d919fee8df4f55bca4548dc8716f31",
+      "name": "Изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "0af6f832102f4b5b8465bf625d632f2d"
+    }
+  },
+  "graphs": {
+    "0af6f832102f4b5b8465bf625d632f2d": {
+      "id": "0af6f832102f4b5b8465bf625d632f2d",
+      "name": "Старт, кадр и отпускание",
+      "kind": "behavior",
+      "nodes": {
+        "732045af3ffc4242980749343ad9670b": {
+          "id": "732045af3ffc4242980749343ad9670b",
+          "kind": "start",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "1beb58866c2540a09d01f491ff97157c": {
+          "id": "1beb58866c2540a09d01f491ff97157c",
+          "kind": "move",
+          "name": "",
+          "x": 430,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "13279ee17f984edc93834c8e04147e0a": {
+          "id": "13279ee17f984edc93834c8e04147e0a",
+          "kind": "vector",
+          "name": "",
+          "x": 850,
+          "y": 0,
+          "params": {
+            "x": 20,
+            "y": 0
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "5aca557e23d84156ade4b1d1bf7e41c2": {
+          "id": "5aca557e23d84156ade4b1d1bf7e41c2",
+          "kind": "frame",
+          "name": "",
+          "x": 0,
+          "y": 500,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "11950116ce944f7a993c34519f297d60": {
+          "id": "11950116ce944f7a993c34519f297d60",
+          "kind": "move",
+          "name": "",
+          "x": 430,
+          "y": 500,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "520bdc835cc741efa15182c1f4bb5b63": {
+          "id": "520bdc835cc741efa15182c1f4bb5b63",
+          "kind": "vector",
+          "name": "",
+          "x": 850,
+          "y": 500,
+          "params": {
+            "x": 0,
+            "y": 0
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "454850d8914e4fb0a23763cd800c5a5c": {
+          "id": "454850d8914e4fb0a23763cd800c5a5c",
+          "kind": "key_release",
+          "name": "",
+          "x": 0,
+          "y": 950,
+          "params": {
+            "key": "Space"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "2ae4c9aff8f14da794fc1f67d0505a53": {
+          "id": "2ae4c9aff8f14da794fc1f67d0505a53",
+          "kind": "move",
+          "name": "",
+          "x": 430,
+          "y": 950,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "dfed4c8f4f7a46329a0aa2b4752c9b7a": {
+          "id": "dfed4c8f4f7a46329a0aa2b4752c9b7a",
+          "kind": "vector",
+          "name": "",
+          "x": 850,
+          "y": 950,
+          "params": {
+            "x": 0,
+            "y": 20
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "732045af3ffc4242980749343ad9670b",
+          "output": "object",
+          "target": "1beb58866c2540a09d01f491ff97157c",
+          "input": "object",
+          "id": "6abc804cdd0f4eb1975dc98f036e538f"
+        },
+        {
+          "source": "13279ee17f984edc93834c8e04147e0a",
+          "output": "value",
+          "target": "1beb58866c2540a09d01f491ff97157c",
+          "input": "delta",
+          "id": "93b2af8fb1a44b1e8775d89a048a1fbc"
+        },
+        {
+          "source": "732045af3ffc4242980749343ad9670b",
+          "output": "next",
+          "target": "1beb58866c2540a09d01f491ff97157c",
+          "input": "in",
+          "id": "fccd9566eab742af8a19202b482d8245"
+        },
+        {
+          "source": "5aca557e23d84156ade4b1d1bf7e41c2",
+          "output": "delta",
+          "target": "520bdc835cc741efa15182c1f4bb5b63",
+          "input": "x",
+          "id": "2dcb1688f4df4434a80dc0c2f0229473"
+        },
+        {
+          "source": "520bdc835cc741efa15182c1f4bb5b63",
+          "output": "value",
+          "target": "11950116ce944f7a993c34519f297d60",
+          "input": "delta",
+          "id": "59edc7e6fac74376b6187900481d4e56"
+        },
+        {
+          "source": "5aca557e23d84156ade4b1d1bf7e41c2",
+          "output": "object",
+          "target": "11950116ce944f7a993c34519f297d60",
+          "input": "object",
+          "id": "6e095b05f258437384dc683c97165c0e"
+        },
+        {
+          "source": "5aca557e23d84156ade4b1d1bf7e41c2",
+          "output": "next",
+          "target": "11950116ce944f7a993c34519f297d60",
+          "input": "in",
+          "id": "65321034769648e1bff419a2471adbd2"
+        },
+        {
+          "source": "454850d8914e4fb0a23763cd800c5a5c",
+          "output": "object",
+          "target": "2ae4c9aff8f14da794fc1f67d0505a53",
+          "input": "object",
+          "id": "37b4fa938e1b4f68b8864a82a731dda3"
+        },
+        {
+          "source": "dfed4c8f4f7a46329a0aa2b4752c9b7a",
+          "output": "value",
+          "target": "2ae4c9aff8f14da794fc1f67d0505a53",
+          "input": "delta",
+          "id": "b698c41fd28e468692436056e02534bd"
+        },
+        {
+          "source": "454850d8914e4fb0a23763cd800c5a5c",
+          "output": "next",
+          "target": "2ae4c9aff8f14da794fc1f67d0505a53",
+          "input": "in",
+          "id": "5fbd7706e214450a9af543bb69a6173f"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {},
+  "format_version": 1
+}

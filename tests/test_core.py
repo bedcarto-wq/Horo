@@ -235,15 +235,17 @@ def test_no_result_function_may_end_without_return():
     r = Runtime(p); r.key_press('Space'); assert r.running
 
 
-def test_nested_call_and_recursive_call_rejected():
+def test_recursive_call_rejected():
     p = function_loop(); fn, entry = find(p, 'entry', 'function'); fn.add('call', function=fn.id)
     errors = validate_project(p)
-    assert any('не вызывают' in d.message for d in errors)
+    assert any('рекурсия' in d.message for d in errors)
 
 
-def test_nested_loop_rejected():
-    p = function_loop(); g, loop = find(p, 'repeat'); g.add('repeat', region=loop.id)
-    assert any('Вложенные' in d.message for d in validate_project(p))
+def test_nested_loop_allowed_with_explicit_region():
+    p = function_loop(); g, loop = find(p, 'repeat')
+    nested = g.add('repeat', region=loop.id); count = g.add('number', value=1)
+    link(g, count, 'value', nested, 'n')
+    assert not validate_project(p)
 
 
 def test_loop_region_boundary_and_body_removal():

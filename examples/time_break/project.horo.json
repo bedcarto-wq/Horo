@@ -1,0 +1,303 @@
+{
+  "name": "Отмена итерации: break",
+  "width": 800,
+  "height": 600,
+  "nodes": {
+    "11b451f1f81f4c0fa3b15c4f1593c26c": {
+      "id": "11b451f1f81f4c0fa3b15c4f1593c26c",
+      "name": "Изображение",
+      "kind": "sprite",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": "assets/test.xpm",
+      "graph": "8d44e63ac4aa40399b5c750884df9581"
+    }
+  },
+  "graphs": {
+    "8d44e63ac4aa40399b5c750884df9581": {
+      "id": "8d44e63ac4aa40399b5c750884df9581",
+      "name": "Отмена итерации: break",
+      "kind": "behavior",
+      "nodes": {
+        "93226d819a184562b1a34485bbc7f775": {
+          "id": "93226d819a184562b1a34485bbc7f775",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "df1d73a98cd246ce910129e415635a61": {
+          "id": "df1d73a98cd246ce910129e415635a61",
+          "kind": "read",
+          "name": "",
+          "x": 0,
+          "y": 300,
+          "params": {
+            "variable": "214c1d6dfeac45ec8a887d50b2f502b9"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "24afeed4d430412a953210095b011b67": {
+          "id": "24afeed4d430412a953210095b011b67",
+          "kind": "number",
+          "name": "",
+          "x": 0,
+          "y": 650,
+          "params": {
+            "value": 0
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "485efe59e09e45d6a4df51817ea0b517": {
+          "id": "485efe59e09e45d6a4df51817ea0b517",
+          "kind": "greater",
+          "name": "",
+          "x": 430,
+          "y": 300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "e9d8ec5bb23846cdb6e0249384096a09": {
+          "id": "e9d8ec5bb23846cdb6e0249384096a09",
+          "kind": "while",
+          "name": "",
+          "x": 850,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "459def35ba6b45d4a8ac4d5036b8c7ac": {
+          "id": "459def35ba6b45d4a8ac4d5036b8c7ac",
+          "kind": "number",
+          "name": "",
+          "x": 400,
+          "y": 400,
+          "params": {
+            "value": -1
+          },
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": []
+        },
+        "724c66ebf54447d78039f5dba5199d7f": {
+          "id": "724c66ebf54447d78039f5dba5199d7f",
+          "kind": "add",
+          "name": "",
+          "x": 800,
+          "y": 400,
+          "params": {},
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": []
+        },
+        "9f7b2796c66c4cda8b5cbf8e77ab3795": {
+          "id": "9f7b2796c66c4cda8b5cbf8e77ab3795",
+          "kind": "write",
+          "name": "",
+          "x": 430,
+          "y": 20,
+          "params": {
+            "variable": "214c1d6dfeac45ec8a887d50b2f502b9"
+          },
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": []
+        },
+        "105a3ff8d0794b4c8685eab1dd09fe75": {
+          "id": "105a3ff8d0794b4c8685eab1dd09fe75",
+          "kind": "wait",
+          "name": "",
+          "x": 430,
+          "y": 600,
+          "params": {
+            "n": 2
+          },
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": []
+        },
+        "65aa19b827f34babb9414ccdbb527e11": {
+          "id": "65aa19b827f34babb9414ccdbb527e11",
+          "kind": "move",
+          "name": "",
+          "x": 850,
+          "y": 600,
+          "params": {},
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": []
+        },
+        "51a21478eb31431ca04eb8f9c62dbf80": {
+          "id": "51a21478eb31431ca04eb8f9c62dbf80",
+          "kind": "vector",
+          "name": "",
+          "x": 20,
+          "y": 230,
+          "params": {
+            "x": 20,
+            "y": 0
+          },
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": []
+        },
+        "0c803734d0e14ddbbabb5d19da126042": {
+          "id": "0c803734d0e14ddbbabb5d19da126042",
+          "kind": "fork",
+          "name": "",
+          "x": 20,
+          "y": 20,
+          "params": {},
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": [
+            "2f4c50dad1194a289bd8d02867ae69e8",
+            "4bb313777ab241a8bca1c4cb6360fd45"
+          ]
+        },
+        "ffc4283a0fc44209a8ed8631f49f36e3": {
+          "id": "ffc4283a0fc44209a8ed8631f49f36e3",
+          "kind": "break",
+          "name": "",
+          "x": 850,
+          "y": 20,
+          "params": {},
+          "region": "e9d8ec5bb23846cdb6e0249384096a09",
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "df1d73a98cd246ce910129e415635a61",
+          "output": "value",
+          "target": "485efe59e09e45d6a4df51817ea0b517",
+          "input": "a",
+          "id": "ba1e98b56de74dd7b0a64d601c6739c4"
+        },
+        {
+          "source": "24afeed4d430412a953210095b011b67",
+          "output": "value",
+          "target": "485efe59e09e45d6a4df51817ea0b517",
+          "input": "b",
+          "id": "8a55e715acb24c48a985ce6f3547b464"
+        },
+        {
+          "source": "93226d819a184562b1a34485bbc7f775",
+          "output": "next",
+          "target": "e9d8ec5bb23846cdb6e0249384096a09",
+          "input": "in",
+          "id": "6da5ced9836b43d4972accc9feff3b50"
+        },
+        {
+          "source": "485efe59e09e45d6a4df51817ea0b517",
+          "output": "value",
+          "target": "e9d8ec5bb23846cdb6e0249384096a09",
+          "input": "condition",
+          "id": "9b3959a30ebd4b9688f31eb593b3e11c"
+        },
+        {
+          "source": "df1d73a98cd246ce910129e415635a61",
+          "output": "value",
+          "target": "724c66ebf54447d78039f5dba5199d7f",
+          "input": "a",
+          "id": "5a2725e6549543f498a84a9821fe6194"
+        },
+        {
+          "source": "459def35ba6b45d4a8ac4d5036b8c7ac",
+          "output": "value",
+          "target": "724c66ebf54447d78039f5dba5199d7f",
+          "input": "b",
+          "id": "0fa7f50e95f34603bb10beb16b5c7570"
+        },
+        {
+          "source": "724c66ebf54447d78039f5dba5199d7f",
+          "output": "value",
+          "target": "9f7b2796c66c4cda8b5cbf8e77ab3795",
+          "input": "value",
+          "id": "3897d6a372524debac22304fcab66482"
+        },
+        {
+          "source": "93226d819a184562b1a34485bbc7f775",
+          "output": "object",
+          "target": "65aa19b827f34babb9414ccdbb527e11",
+          "input": "object",
+          "id": "c48e228249a2470bb56827293a1b4617"
+        },
+        {
+          "source": "51a21478eb31431ca04eb8f9c62dbf80",
+          "output": "value",
+          "target": "65aa19b827f34babb9414ccdbb527e11",
+          "input": "delta",
+          "id": "ff9dd9d755594dcba0902bcc239b8238"
+        },
+        {
+          "source": "e9d8ec5bb23846cdb6e0249384096a09",
+          "output": "body",
+          "target": "0c803734d0e14ddbbabb5d19da126042",
+          "input": "in",
+          "id": "8e631d103c094f0b979e23668b63971e"
+        },
+        {
+          "source": "0c803734d0e14ddbbabb5d19da126042",
+          "output": "2f4c50dad1194a289bd8d02867ae69e8",
+          "target": "9f7b2796c66c4cda8b5cbf8e77ab3795",
+          "input": "in",
+          "id": "abf9d30c323b4bae85b4667baf7817f6"
+        },
+        {
+          "source": "0c803734d0e14ddbbabb5d19da126042",
+          "output": "4bb313777ab241a8bca1c4cb6360fd45",
+          "target": "105a3ff8d0794b4c8685eab1dd09fe75",
+          "input": "in",
+          "id": "a6fb1089c5b940f7b181bc37762ed495"
+        },
+        {
+          "source": "105a3ff8d0794b4c8685eab1dd09fe75",
+          "output": "next",
+          "target": "65aa19b827f34babb9414ccdbb527e11",
+          "input": "in",
+          "id": "aaacb3859e73474c9dcfc8f387fb4256"
+        },
+        {
+          "source": "9f7b2796c66c4cda8b5cbf8e77ab3795",
+          "output": "next",
+          "target": "ffc4283a0fc44209a8ed8631f49f36e3",
+          "input": "in",
+          "id": "58ca137fd04943cea02c42dd66a07dcc"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {
+    "214c1d6dfeac45ec8a887d50b2f502b9": {
+      "id": "214c1d6dfeac45ec8a887d50b2f502b9",
+      "name": "Осталось",
+      "type": "number",
+      "scope": "object",
+      "value": 3,
+      "owner": null
+    }
+  },
+  "format_version": 1
+}

@@ -18,6 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       QT_QPA_PLATFORM: offscreen
+      PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,6 +40,7 @@ jobs:
       contents: write
     env:
       QT_QPA_PLATFORM: offscreen
+      PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,7 +48,14 @@ jobs:
           python-version: '3.12'
       - name: Build editor and copy documentation and examples
         shell: pwsh
-        run: ./scripts/build_windows.ps1
+        run: |
+          try { ./scripts/build_windows.ps1 *>&1 | Tee-Object -FilePath windows-build.log }
+          catch { $_ | Out-String | Add-Content windows-build.log; throw }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-build-log
+          path: windows-build.log
       - uses: actions/upload-artifact@v4
         with:
           name: Horo-0.1.0-Windows-x64

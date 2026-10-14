@@ -120,6 +120,7 @@ class CardItem(QGraphicsItem):
         form = QFormLayout(widget); form.setContentsMargins(0, 3, 0, 3)
         def text_field(label, key, kind, default):
             edit = QLineEdit(format_value(node.params.get(key, default), kind))
+            edit.installEventFilter(self.view.window())
             def finish():
                 try:
                     value = typed_value(edit.text(), kind)

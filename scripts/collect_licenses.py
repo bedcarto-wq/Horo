@@ -27,4 +27,4 @@ for filename in ('LGPL-3.0.txt', 'GPL-3.0.txt', 'GPL-2.0.txt'):
         raise SystemExit(f'Не найден обязательный текст {filename}')
     target = root/'GNU'/filename; target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, target)
-print('Лицензионные тексты PySide6/Qt/Shiboken сохранены')
+print('PySide6/Qt/Shiboken license notices copied')

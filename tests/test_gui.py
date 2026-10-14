@@ -221,3 +221,15 @@ def test_save_and_run_flush_last_field_edit(qapp, tmp_path):
     w.run_game(); qapp.processEvents(); QTest.keyClick(w.game, Qt.Key.Key_Space); qapp.processEvents()
     assert next(iter(w.game.runtime.project.nodes.values())).transform.x == 171
     finish(w, qapp)
+
+
+def test_editor_shortcuts_do_not_steal_text_input(qapp, tmp_path):
+    w = window(qapp, tmp_path); w.select_object(next(iter(w.project.nodes))); qapp.processEvents()
+    field = next(f for f in w.props.findChildren(QLineEdit) if not f.isReadOnly())
+    field.setFocus(); qapp.processEvents()
+    QTest.keyClick(field, Qt.Key.Key_F5); qapp.processEvents()
+    assert w.game is None
+    field.selectAll(); QTest.keyClicks(field, 'Edited'); QTest.keyClick(field, Qt.Key.Key_Z, Qt.KeyboardModifier.ControlModifier)
+    assert field.text() != 'Edited'
+    field.editingFinished.emit(); qapp.processEvents()
+    finish(w, qapp)

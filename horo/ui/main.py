@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import logging
 from pathlib import Path
-from PySide6.QtCore import Qt, QTimer, QMimeData
+from PySide6.QtCore import Qt, QTimer, QMimeData, QEvent
 from PySide6.QtGui import QAction, QKeySequence, QDrag, QImageReader, QPixmap
 from PySide6.QtWidgets import (QApplication, QMainWindow, QDockWidget, QWidget, QVBoxLayout, QHBoxLayout,
     QTreeWidget, QTreeWidgetItem, QTreeWidgetItemIterator, QListWidget, QListWidgetItem, QPushButton, QTabWidget,
@@ -341,6 +341,8 @@ class MainWindow(QMainWindow):
         button.clicked.connect(lambda: self.open_graph(self.project.nodes[key].graph))
         self.props_form.addRow(button)
         self.props_form.addRow(QLabel('Положение локальное; ось Y вниз.\nПоворот по часовой стрелке; центр — начало объекта.'))
+        for field in self.props.findChildren(QLineEdit):
+            field.installEventFilter(self)
 
     def defer_property(self, key, attr, value):
         if not self.loading and key in self.project.nodes and getattr(self.project.nodes[key], attr) != value:
@@ -713,6 +715,14 @@ class MainWindow(QMainWindow):
     def stop_game(self):
         if self.game:
             game = self.game; self.game = None; game.close()
+
+    def eventFilter(self, watched, event):
+        if (event.type() == QEvent.Type.ShortcutOverride
+                and isinstance(watched, (QLineEdit, QPlainTextEdit, QTextEdit))):
+            # Text editing owns keyboard input; menu/toolbar clicks still work.
+            event.accept()
+            return True
+        return super().eventFilter(watched, event)
 
     def closeEvent(self, event):
         if self.maybe_save():

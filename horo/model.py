@@ -68,6 +68,15 @@ class SceneNode:
     width: float = 64
     height: float = 64
     radius: float = 32
+    mass: float = 1
+    gravity: list = field(default_factory=lambda: [0, 0])
+    velocity: list = field(default_factory=lambda: [0, 0])
+    angular_velocity: float = 0  # degrees/second, runtime stores radians/second
+    friction: float = .5
+    restitution: float = 0
+    up: list = field(default_factory=lambda: [0, -1])
+    one_way: bool = False  # rectangle shape only
+    one_way_normal: list = field(default_factory=lambda: [0, -1])
     points: list = field(default_factory=lambda: [[-32,-32],[32,-32],[32,32],[-32,32]])
 
 @dataclass
@@ -227,8 +236,10 @@ class Project:
             all_ids.add(key)
         for key, node in self.nodes.items():
             identity(key, node)
-            if node.kind not in ('transform', 'sprite', 'static_body', 'controlled_body', 'rect_shape', 'circle_shape', 'polygon_shape') or not isinstance(node.name, str):
+            if node.kind not in ('transform', 'sprite', 'static_body', 'controlled_body', 'dynamic_body', 'platform_body', 'rect_shape', 'circle_shape', 'polygon_shape') or not isinstance(node.name, str):
                 raise ValueError('Неизвестный тип объекта сцены')
+            from .dynamics import validate_settings
+            validate_settings(node)
             if node.kind.endswith('_shape'):
                 from .physics import shape_points, BODIES
                 try:

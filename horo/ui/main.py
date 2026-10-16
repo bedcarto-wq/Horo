@@ -130,7 +130,7 @@ class MainWindow(QMainWindow):
         self.action(scene_menu, 'Добавить 2D-преобразование', lambda: self.add_scene('transform'))
         self.action(scene_menu, 'Добавить изображение', lambda: self.add_scene('sprite'))
         self.action(scene_menu, 'Удалить выбранный объект', self.remove_scene)
-        for kind,title in [('static_body','Неподвижное тело'),('controlled_body','Управляемое тело'),('rect_shape','Прямоугольная форма'),('circle_shape','Круглая форма'),('polygon_shape','Многоугольная форма')]:
+        for kind,title in [('static_body','Неподвижное тело'),('controlled_body','Управляемое тело'),('dynamic_body','Динамическое тело'),('platform_body','Движущаяся платформа'),('rect_shape','Прямоугольная форма'),('circle_shape','Круглая форма'),('polygon_shape','Многоугольная форма')]:
             self.action(scene_menu,title,lambda checked=False,k=kind:self.add_scene(k))
         self.action(scene_menu,'Редактировать контур',lambda:self.scene_editor.canvas.contour.begin(self.selected))
         self.action(scene_menu,'Нарисовать новый контур',lambda:self.scene_editor.canvas.contour.begin(self.selected,True))
@@ -257,7 +257,7 @@ class MainWindow(QMainWindow):
             if key in tree_items:
                 return tree_items[key]
             node = self.project.nodes[key]
-            item = QTreeWidgetItem([node.name + ' · ' + {'sprite':'Изображение','transform':'2D','static_body':'Неподвижное тело','controlled_body':'Управляемое тело','rect_shape':'Прямоугольник','circle_shape':'Круг','polygon_shape':'Контур'}.get(node.kind,node.kind)])
+            item = QTreeWidgetItem([node.name + ' · ' + {'sprite':'Изображение','transform':'2D','static_body':'Неподвижное тело','controlled_body':'Управляемое тело','dynamic_body':'Динамическое тело','platform_body':'Платформа','rect_shape':'Прямоугольник','circle_shape':'Круг','polygon_shape':'Контур'}.get(node.kind,node.kind)])
             item.setData(0, Qt.ItemDataRole.UserRole, key); item.setToolTip(0, key)
             if node.parent:
                 add(node.parent).addChild(item)
@@ -303,6 +303,34 @@ class MainWindow(QMainWindow):
         if not node:
             self.props_form.addRow(QLabel('Выберите объект в дереве или на сцене')); return
         key = node.id
+        def physical_spin(label,attr,low,high,index=None):
+            spin=QDoubleSpinBox();spin.setRange(low,high);spin.setDecimals(4)
+            spin.setValue(getattr(node,attr) if index is None else getattr(node,attr)[index])
+            def commit():
+                value=spin.value()
+                if index is not None:
+                    value=list(getattr(self.project.nodes[key],attr));value[index]=spin.value()
+                self.defer_property(key,attr,value)
+            spin.editingFinished.connect(commit);self.props_form.addRow(label,spin)
+        if node.kind in BODIES:
+            for label,attr in [('Трение','friction'),('Отскок','restitution')]:physical_spin(label,attr,0,1)
+            if node.kind=='dynamic_body':
+                physical_spin('Масса','mass',.0001,1e9)
+                physical_spin('Угловая скорость °/с','angular_velocity',-1e9,1e9)
+            if node.kind in ('controlled_body','dynamic_body'):
+                for attr,label in [('gravity','Гравитация'),('velocity','Начальная скорость')]+([('up','Вверх при g=0')] if node.kind=='controlled_body' else []):
+                    for i,axis in enumerate(('X','Y')):physical_spin(label+' '+axis,attr,-1e9,1e9,i)
+                self.props_form.addRow(QLabel('Скорость/гравитация — мировые. Runtime не сохраняется.'))
+        if node.kind=='rect_shape':
+            choice=QComboBox();choice.addItems(['Обычная','Односторонняя'])
+            choice.setCurrentIndex(int(node.one_way))
+            choice.currentIndexChanged.connect(lambda i:self.defer_property(key,'one_way',bool(i)))
+            self.props_form.addRow('Поверхность',choice)
+            normals=[(0,-1),(0,1),(-1,0),(1,0)]
+            normal=QComboBox();normal.addItems(['Вверх (0,−1)','Вниз (0,1)','Влево (−1,0)','Вправо (1,0)'])
+            normal.setCurrentIndex(normals.index(tuple(node.one_way_normal)))
+            normal.currentIndexChanged.connect(lambda i:self.defer_property(key,'one_way_normal',list(normals[i])))
+            self.props_form.addRow('Блокирующая сторона',normal)
         if node.kind in SHAPES:
             fields=[('Ширина','width'),('Высота','height')] if node.kind=='rect_shape' else [('Радиус','radius')] if node.kind=='circle_shape' else []
             for label,attr in fields:
@@ -421,7 +449,7 @@ class MainWindow(QMainWindow):
             self.message('Сначала выберите физическое тело — родителя формы');return
         node = SceneNode(kind=kind, name='Изображение' if kind == 'sprite' else 'Преобразование 2D',
                          parent=None if position is not None else self.selected, image=image)
-        names={'static_body':'Неподвижное тело','controlled_body':'Управляемое тело','rect_shape':'Прямоугольная форма','circle_shape':'Круглая форма','polygon_shape':'Многоугольная форма'}
+        names={'static_body':'Неподвижное тело','controlled_body':'Управляемое тело','dynamic_body':'Динамическое тело','platform_body':'Платформа','rect_shape':'Прямоугольная форма','circle_shape':'Круглая форма','polygon_shape':'Многоугольная форма'}
         node.name=names.get(kind,node.name)
         if kind in BODIES and (node.parent is not None and self.project.nodes[node.parent].kind != 'transform'):node.parent=None
         if position is not None:

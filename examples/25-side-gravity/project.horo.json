@@ -1,0 +1,608 @@
+{
+  "name": "Боковая гравитация: W/S, Space",
+  "width": 960,
+  "height": 640,
+  "nodes": {
+    "9e35171be58d4d0189210a4bd443980f": {
+      "id": "9e35171be58d4d0189210a4bd443980f",
+      "name": "Персонаж W/S",
+      "kind": "controlled_body",
+      "parent": null,
+      "transform": {
+        "x": 830,
+        "y": 270,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": "db167debb9594a7da97e58b91d88979c",
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        500,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "dbfbf390633842558de7b2080885e4d0": {
+      "id": "dbfbf390633842558de7b2080885e4d0",
+      "name": "Персонаж W/S — форма",
+      "kind": "circle_shape",
+      "parent": "9e35171be58d4d0189210a4bd443980f",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 14,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "836d5f287eb24e93bab4af01d1377d68": {
+      "id": "836d5f287eb24e93bab4af01d1377d68",
+      "name": "Правый пол",
+      "kind": "static_body",
+      "parent": null,
+      "transform": {
+        "x": 920,
+        "y": 320,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "d5835bf9fcf54604ac30bc5decde81c4": {
+      "id": "d5835bf9fcf54604ac30bc5decde81c4",
+      "name": "Правый пол — форма",
+      "kind": "rect_shape",
+      "parent": "836d5f287eb24e93bab4af01d1377d68",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 30,
+      "height": 600,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    }
+  },
+  "graphs": {
+    "db167debb9594a7da97e58b91d88979c": {
+      "id": "db167debb9594a7da97e58b91d88979c",
+      "name": "Ходьба и готовый прыжок",
+      "kind": "behavior",
+      "nodes": {
+        "623f0d4ff2584f8b876ae6c45c4d539a": {
+          "id": "623f0d4ff2584f8b876ae6c45c4d539a",
+          "kind": "frame",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "cd96aa8d25a74f83ad810547e4af6b40": {
+          "id": "cd96aa8d25a74f83ad810547e4af6b40",
+          "kind": "sequence",
+          "name": "",
+          "x": 400,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": [
+            "53bdd6c1976f4bc9b6538af6ece26835",
+            "822aef618852482381dc6b494960ea00"
+          ]
+        },
+        "b0d87dc8ee7443ee9f7ba01ee4862971": {
+          "id": "b0d87dc8ee7443ee9f7ba01ee4862971",
+          "kind": "if",
+          "name": "",
+          "x": 800,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "28d1e8d3b9e9412a80d0d747c7041673": {
+          "id": "28d1e8d3b9e9412a80d0d747c7041673",
+          "kind": "held",
+          "name": "",
+          "x": 400,
+          "y": 300,
+          "params": {
+            "key": "W"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "c5d5e50e665c4749865514c090db7a8e": {
+          "id": "c5d5e50e665c4749865514c090db7a8e",
+          "kind": "write",
+          "name": "",
+          "x": 1200,
+          "y": 0,
+          "params": {
+            "variable": "bca19e437f5648c38841868de9e1d31d"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "ffa936abe5554fa79d146093731f9e4a": {
+          "id": "ffa936abe5554fa79d146093731f9e4a",
+          "kind": "number",
+          "name": "",
+          "x": 800,
+          "y": 300,
+          "params": {
+            "value": -140
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "6560b0510c5c4dc6a726c4299f75f5ba": {
+          "id": "6560b0510c5c4dc6a726c4299f75f5ba",
+          "kind": "held",
+          "name": "",
+          "x": 800,
+          "y": 600,
+          "params": {
+            "key": "S"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "c3f77f3ae5984905b05da78bb4bc148a": {
+          "id": "c3f77f3ae5984905b05da78bb4bc148a",
+          "kind": "if",
+          "name": "",
+          "x": 1200,
+          "y": 600,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "eb30d2eb5c0a43dca6b2f2bdd2c8938d": {
+          "id": "eb30d2eb5c0a43dca6b2f2bdd2c8938d",
+          "kind": "write",
+          "name": "",
+          "x": 1600,
+          "y": 600,
+          "params": {
+            "variable": "bca19e437f5648c38841868de9e1d31d"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "ce768e5bf71246eaa11c86b6035412ce": {
+          "id": "ce768e5bf71246eaa11c86b6035412ce",
+          "kind": "number",
+          "name": "",
+          "x": 1600,
+          "y": 900,
+          "params": {
+            "value": 140
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "c459dc2aef314ecb98dc7e9eda1ad8e4": {
+          "id": "c459dc2aef314ecb98dc7e9eda1ad8e4",
+          "kind": "write",
+          "name": "",
+          "x": 2000,
+          "y": 600,
+          "params": {
+            "variable": "bca19e437f5648c38841868de9e1d31d"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "10db96bc880048a8b62ca621862aefc9": {
+          "id": "10db96bc880048a8b62ca621862aefc9",
+          "kind": "number",
+          "name": "",
+          "x": 2000,
+          "y": 900,
+          "params": {
+            "value": 0
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "3623f387e88044a0ba74c9d76da67197": {
+          "id": "3623f387e88044a0ba74c9d76da67197",
+          "kind": "read",
+          "name": "",
+          "x": 2400,
+          "y": 300,
+          "params": {
+            "variable": "bca19e437f5648c38841868de9e1d31d"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "03546af25f16431585c49b24823cce67": {
+          "id": "03546af25f16431585c49b24823cce67",
+          "kind": "vector",
+          "name": "",
+          "x": 2800,
+          "y": 300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "fbd9e5ee312341ba81f4e5a9119c1e77": {
+          "id": "fbd9e5ee312341ba81f4e5a9119c1e77",
+          "kind": "body_move",
+          "name": "",
+          "x": 3200,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "1ebff99bda644bc8a752a5b199084d3c": {
+          "id": "1ebff99bda644bc8a752a5b199084d3c",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 1200,
+          "params": {
+            "key": "Space"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "0bbdaf8b835c4540b6fdb4b331eedd1d": {
+          "id": "0bbdaf8b835c4540b6fdb4b331eedd1d",
+          "kind": "number",
+          "name": "",
+          "x": 400,
+          "y": 1500,
+          "params": {
+            "value": 310
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "1a1a6e6307704447b3e5845a2ab42827": {
+          "id": "1a1a6e6307704447b3e5845a2ab42827",
+          "kind": "jump",
+          "name": "",
+          "x": 800,
+          "y": 1200,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "623f0d4ff2584f8b876ae6c45c4d539a",
+          "output": "next",
+          "target": "cd96aa8d25a74f83ad810547e4af6b40",
+          "input": "in",
+          "id": "d6a7e2c962ef4645892335b54521564a"
+        },
+        {
+          "source": "cd96aa8d25a74f83ad810547e4af6b40",
+          "output": "53bdd6c1976f4bc9b6538af6ece26835",
+          "target": "b0d87dc8ee7443ee9f7ba01ee4862971",
+          "input": "in",
+          "id": "7d14f243923e4d838ae89155caaed9af"
+        },
+        {
+          "source": "28d1e8d3b9e9412a80d0d747c7041673",
+          "output": "value",
+          "target": "b0d87dc8ee7443ee9f7ba01ee4862971",
+          "input": "condition",
+          "id": "d3406a73ae38487bbf45c3c71166c181"
+        },
+        {
+          "source": "b0d87dc8ee7443ee9f7ba01ee4862971",
+          "output": "yes",
+          "target": "c5d5e50e665c4749865514c090db7a8e",
+          "input": "in",
+          "id": "3d7340b9e431492ea3a18402a1d225c6"
+        },
+        {
+          "source": "ffa936abe5554fa79d146093731f9e4a",
+          "output": "value",
+          "target": "c5d5e50e665c4749865514c090db7a8e",
+          "input": "value",
+          "id": "ff2bde05a09a43079ce4fdc7e9d15e15"
+        },
+        {
+          "source": "b0d87dc8ee7443ee9f7ba01ee4862971",
+          "output": "no",
+          "target": "c3f77f3ae5984905b05da78bb4bc148a",
+          "input": "in",
+          "id": "924af3848c2e482ca500e824049eac1d"
+        },
+        {
+          "source": "6560b0510c5c4dc6a726c4299f75f5ba",
+          "output": "value",
+          "target": "c3f77f3ae5984905b05da78bb4bc148a",
+          "input": "condition",
+          "id": "7e4b1cd960504d8fb5884c45599b62ea"
+        },
+        {
+          "source": "c3f77f3ae5984905b05da78bb4bc148a",
+          "output": "yes",
+          "target": "eb30d2eb5c0a43dca6b2f2bdd2c8938d",
+          "input": "in",
+          "id": "e638c533e6424e3a874834580a0b2b43"
+        },
+        {
+          "source": "ce768e5bf71246eaa11c86b6035412ce",
+          "output": "value",
+          "target": "eb30d2eb5c0a43dca6b2f2bdd2c8938d",
+          "input": "value",
+          "id": "14744288eca94c15bb3daae38bc95178"
+        },
+        {
+          "source": "c3f77f3ae5984905b05da78bb4bc148a",
+          "output": "no",
+          "target": "c459dc2aef314ecb98dc7e9eda1ad8e4",
+          "input": "in",
+          "id": "8c9995cf412b4b94ba64180bf4bc53dc"
+        },
+        {
+          "source": "10db96bc880048a8b62ca621862aefc9",
+          "output": "value",
+          "target": "c459dc2aef314ecb98dc7e9eda1ad8e4",
+          "input": "value",
+          "id": "6bbbfd131106419fb985f11a60595d75"
+        },
+        {
+          "source": "3623f387e88044a0ba74c9d76da67197",
+          "output": "value",
+          "target": "03546af25f16431585c49b24823cce67",
+          "input": "y",
+          "id": "c5c8aeb0acf7464682cdbe6801e1a203"
+        },
+        {
+          "source": "cd96aa8d25a74f83ad810547e4af6b40",
+          "output": "822aef618852482381dc6b494960ea00",
+          "target": "fbd9e5ee312341ba81f4e5a9119c1e77",
+          "input": "in",
+          "id": "4ee895a87374475c9c9d4fa0f66f70a7"
+        },
+        {
+          "source": "623f0d4ff2584f8b876ae6c45c4d539a",
+          "output": "object",
+          "target": "fbd9e5ee312341ba81f4e5a9119c1e77",
+          "input": "object",
+          "id": "507b705d142347a99bff4bd9907f3edc"
+        },
+        {
+          "source": "03546af25f16431585c49b24823cce67",
+          "output": "value",
+          "target": "fbd9e5ee312341ba81f4e5a9119c1e77",
+          "input": "velocity",
+          "id": "c6b9d4408dc545c0aedf32e12e21d385"
+        },
+        {
+          "source": "1ebff99bda644bc8a752a5b199084d3c",
+          "output": "next",
+          "target": "1a1a6e6307704447b3e5845a2ab42827",
+          "input": "in",
+          "id": "16531115464d4e0291784b9c55e5b151"
+        },
+        {
+          "source": "1ebff99bda644bc8a752a5b199084d3c",
+          "output": "object",
+          "target": "1a1a6e6307704447b3e5845a2ab42827",
+          "input": "object",
+          "id": "567dd02c09ef40a4a010676d80d1de11"
+        },
+        {
+          "source": "0bbdaf8b835c4540b6fdb4b331eedd1d",
+          "output": "value",
+          "target": "1a1a6e6307704447b3e5845a2ab42827",
+          "input": "value",
+          "id": "df9cc522422a47e6b2cca97f7d9df7c4"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {
+    "bca19e437f5648c38841868de9e1d31d": {
+      "id": "bca19e437f5648c38841868de9e1d31d",
+      "name": "Скорость ходьбы",
+      "type": "number",
+      "scope": "run",
+      "value": 0,
+      "owner": "db167debb9594a7da97e58b91d88979c"
+    }
+  },
+  "format_version": 1
+}

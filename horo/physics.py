@@ -4,7 +4,7 @@ from .geometry import (Shape,EPS,ENTER,LEAVE,MIN_SIZE,MAX_COORD,validate_polygon
                        triangulate,add,sub,mul,dot,length,overlap,distance,sweep,near)
 from .model import number
 
-BODIES=('static_body','controlled_body')
+BODIES=('static_body','controlled_body','dynamic_body','platform_body')
 SHAPES=('rect_shape','circle_shape','polygon_shape')
 MAX_SPEED=10_000
 MAX_DT=.1
@@ -54,9 +54,14 @@ def world_shapes(project):
 class PhysicsWorld:
     def __init__(self,project):
         self.project=project;self.contacts=set();self.commands={};self.hit_pairs=set()
+        self.collision_filter=None
         self.validate_positions(world_shapes(project))
+        from .dynamics import Dynamics
+        self.dynamics=Dynamics(self)
 
-    def stop(self):self.contacts.clear();self.commands.clear();self.hit_pairs.clear()
+    def stop(self):
+        self.contacts.clear();self.commands.clear();self.hit_pairs.clear()
+        self.dynamics.stop()
 
     def command(self,oid,velocity,context=None):
         node=self.project.nodes.get(oid) if isinstance(oid,str) else None
@@ -71,6 +76,10 @@ class PhysicsWorld:
             for b in ids[i+1:]:
                 for x in shapes[a]:
                     for y in shapes[b]:
+                        if self.collision_filter and not self.collision_filter(x,y,(0.,0.)):continue
+                        # Back-face intersections of a one-way rectangle are legal.
+                        from .dynamics import initial_pair_blocks
+                        if not initial_pair_blocks(self.project,x,y):continue
                         if overlap(x,y):raise PhysicsError(f'Проникновение тел {a} и {b}; исправьте начальную сцену/телепортацию',a,x.id)
 
     def _translate(self,oid,d):
@@ -91,8 +100,14 @@ class PhysicsWorld:
                 if other==oid:continue
                 for a in shapes[oid]:
                     for b in forms:
+                        if self.collision_filter and not self.collision_filter(a,b,remaining):continue
                         hit=sweep(a,b,remaining)
-                        if hit:candidates.append((hit[0],hit[1],other))
+                        if hit:
+                            from .dynamics import plane
+                            pa,pb=plane(self.project,a),plane(self.project,b)
+                            if pb and dot(hit[1],pb[0])<.999:continue
+                            if pa and dot(hit[1],mul(pa[0],-1))<.999:continue
+                            candidates.append((hit[0],hit[1],other))
             if not candidates:
                 part=remaining;remaining=(0.,0.)
             else:
@@ -113,8 +128,10 @@ class PhysicsWorld:
         else:
             if length(remaining)>EPS:raise PhysicsError('Движение не сошлось за 16 столкновений; уменьшите скорость/сложность угла',oid)
         self._translate(oid,total)
+        return total,normals
 
     def update(self,dt):
+        if self.dynamics.active:return self.dynamics.update(dt)
         shapes=world_shapes(self.project)
         self.validate_positions(shapes)
         if not number(dt) or dt<0 or (shapes and dt>MAX_DT+EPS):raise PhysicsError('Физика: dt должен быть от 0 до 0.1 с')
@@ -134,4 +151,6 @@ class PhysicsWorld:
         events += [('contact_begin',p) for p in sorted(pairs-self.contacts)]
         for p in sorted(self.hit_pairs-pairs-self.contacts):events.extend([('contact_begin',p),('contact_end',p)])
         self.contacts=pairs
+        self.dynamics.refresh_support(shapes)
+        self.dynamics.consumed.clear()
         return events

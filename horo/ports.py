@@ -28,6 +28,20 @@ STARTS |= {'contact_begin', 'contact_end'}
 LOOPS = {'repeat', 'while'}
 PURE = {'number', 'text', 'bool', 'object', 'vector', 'read', 'add', 'greater', 'held', 'direction', 'normalize', 'vector_scale'}
 
+PHYSICS_READ = {'get_velocity': ('Получить скорость','vector'),
+    'get_gravity': ('Получить гравитацию','vector'), 'get_angular': ('Получить угловую скорость','number'),
+    'grounded': ('Есть опора','bool'), 'get_up': ('Направление вверх','vector'),
+    'get_mass': ('Получить массу','number'), 'get_inertia': ('Получить инерцию','number')}
+PHYSICS_ACTION = {'set_velocity': ('Задать скорость','vector'),
+    'set_gravity': ('Задать гравитацию','vector'), 'set_angular': ('Задать угловую скорость','number'),
+    'impulse': ('Приложить импульс','vector'), 'jump': ('Прыгнуть','number'),
+    'platform_move': ('Двигать платформу','vector')}
+LABELS.update({k:v[0] for k,v in {**PHYSICS_READ,**PHYSICS_ACTION}.items()})
+LABELS.update({'dot': 'Скалярное произведение', 'vector_add': 'Сложить векторы', 'vector_sub': 'Вычесть векторы'})
+CATEGORIES['Физика'] = list(PHYSICS_READ)+list(PHYSICS_ACTION)
+CATEGORIES['Вычисления'] += ['dot','vector_add','vector_sub']
+PURE |= set(PHYSICS_READ)|{'dot','vector_add','vector_sub'}
+
 @dataclass(frozen=True)
 class Port:
     key: str
@@ -41,7 +55,18 @@ def ports(project: Project, graph: Graph, node: GraphNode):
     result = []
     def p(key, label, kind, direction, required=True):
         result.append(Port(key, label, kind, direction, required))
-    if node.kind in ('held', 'direction'):
+    if node.kind in PHYSICS_READ or node.kind in PHYSICS_ACTION:
+        p('object', 'Тело', 'object', 'in')
+        if node.kind in PHYSICS_READ:p('value', PHYSICS_READ[node.kind][0], PHYSICS_READ[node.kind][1], 'out')
+        else:
+            p('in', 'Выполнение', 'exec', 'in');p('next','Далее','exec','out')
+            label = 'Градусов / с' if node.kind=='set_angular' else 'Скорость прыжка' if node.kind=='jump' else 'Значение'
+            p('value',label,PHYSICS_ACTION[node.kind][1],'in')
+            if node.kind=='impulse':p('point','Мировая точка (иначе центр масс)','vector','in',False)
+    elif node.kind in ('dot','vector_add','vector_sub'):
+        p('a','A','vector','in');p('b','B','vector','in')
+        p('value','Результат','number' if node.kind=='dot' else 'vector','out')
+    elif node.kind in ('held', 'direction'):
         p('value', 'Удерживается' if node.kind == 'held' else 'Направление', 'bool' if node.kind == 'held' else 'vector', 'out')
     elif node.kind == 'normalize':
         p('vector', 'Вектор', 'vector', 'in'); p('value', 'Единичный вектор', 'vector', 'out')

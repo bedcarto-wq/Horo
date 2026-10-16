@@ -102,10 +102,11 @@ def validate_graph(project, graph):
             err('Поле ожидания должно быть конечным числом', node.id)
         if graph.kind == 'behavior' and node.kind in ('entry', 'return'):
             err('Вход/возврат предназначен только для графа-функции', node.id)
-        if node.kind in ('key', 'key_release'):
-            key = node.params.get('key', 'Space')
+        if node.kind in ('key', 'key_release', 'held', 'direction'):
+            keys = [node.params.get('key', 'Space')] if node.kind != 'direction' else [node.params.get(k,d) for k,d in [('left','A'),('right','D'),('up','W'),('down','S')]]
+            key = keys[0]
             allowed = ['Space', 'Left', 'Right', 'Up', 'Down', 'Return', 'Escape'] + list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            if key not in allowed:
+            if any(k not in allowed for k in keys):
                 err('Клавиша не поддерживается', node.id)
         if node.kind in ('number', 'text', 'bool', 'object'):
             from .model import initial

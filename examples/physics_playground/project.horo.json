@@ -1,0 +1,952 @@
+{
+  "name": "Физика: WASD, скольжение и парные контакты",
+  "width": 960,
+  "height": 640,
+  "nodes": {
+    "cb6652404a50488d9526d70c4449ed2a": {
+      "id": "cb6652404a50488d9526d70c4449ed2a",
+      "name": "Персонаж",
+      "kind": "controlled_body",
+      "parent": null,
+      "transform": {
+        "x": 100,
+        "y": 100,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": "9cddbb24cc4949d0b969e8ab649399ff",
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "0a10dc772dda45378ac87f1ac72ed4e7": {
+      "id": "0a10dc772dda45378ac87f1ac72ed4e7",
+      "name": "Персонаж — форма",
+      "kind": "circle_shape",
+      "parent": "cb6652404a50488d9526d70c4449ed2a",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 14,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "99d75b8a3b9444ee9eb2af390ccaf229": {
+      "id": "99d75b8a3b9444ee9eb2af390ccaf229",
+      "name": "Составные границы",
+      "kind": "static_body",
+      "parent": null,
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "a7651463ad5047d080a9f7bb8f83d17a": {
+      "id": "a7651463ad5047d080a9f7bb8f83d17a",
+      "name": "Стена",
+      "kind": "rect_shape",
+      "parent": "99d75b8a3b9444ee9eb2af390ccaf229",
+      "transform": {
+        "x": 480,
+        "y": 10,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 940,
+      "height": 20,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "25a6b7a72148486b8b91d4641ea500d4": {
+      "id": "25a6b7a72148486b8b91d4641ea500d4",
+      "name": "Стена",
+      "kind": "rect_shape",
+      "parent": "99d75b8a3b9444ee9eb2af390ccaf229",
+      "transform": {
+        "x": 480,
+        "y": 630,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 940,
+      "height": 20,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "9a67d73d936d41668560a1e834b0fcdf": {
+      "id": "9a67d73d936d41668560a1e834b0fcdf",
+      "name": "Стена",
+      "kind": "rect_shape",
+      "parent": "99d75b8a3b9444ee9eb2af390ccaf229",
+      "transform": {
+        "x": 10,
+        "y": 320,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 20,
+      "height": 640,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "b2790ee540d946748596cb40fdb9d2e3": {
+      "id": "b2790ee540d946748596cb40fdb9d2e3",
+      "name": "Стена",
+      "kind": "rect_shape",
+      "parent": "99d75b8a3b9444ee9eb2af390ccaf229",
+      "transform": {
+        "x": 950,
+        "y": 320,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 20,
+      "height": 640,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "8f8552658c7741309dbd5293d91f5e66": {
+      "id": "8f8552658c7741309dbd5293d91f5e66",
+      "name": "Стена",
+      "kind": "rect_shape",
+      "parent": "99d75b8a3b9444ee9eb2af390ccaf229",
+      "transform": {
+        "x": 320,
+        "y": 200,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 20,
+      "height": 220,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "43c1490d8c904076867b32002ce9ac0b": {
+      "id": "43c1490d8c904076867b32002ce9ac0b",
+      "name": "Стена",
+      "kind": "rect_shape",
+      "parent": "99d75b8a3b9444ee9eb2af390ccaf229",
+      "transform": {
+        "x": 390,
+        "y": 300,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 120,
+      "height": 20,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "7dc02fb462b94be8bd003bfa8b158d6d": {
+      "id": "7dc02fb462b94be8bd003bfa8b158d6d",
+      "name": "Круглое препятствие",
+      "kind": "static_body",
+      "parent": null,
+      "transform": {
+        "x": 560,
+        "y": 180,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "1cd1aa0f5163413ea4d7fb63691552ee": {
+      "id": "1cd1aa0f5163413ea4d7fb63691552ee",
+      "name": "Круглое препятствие — форма",
+      "kind": "circle_shape",
+      "parent": "7dc02fb462b94be8bd003bfa8b158d6d",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 55,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "96c6407eba1b4a6fabce347727df9110": {
+      "id": "96c6407eba1b4a6fabce347727df9110",
+      "name": "Вогнутая стена",
+      "kind": "static_body",
+      "parent": null,
+      "transform": {
+        "x": 570,
+        "y": 350,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "ae1f3faa11f8412c93b08ccd37052487": {
+      "id": "ae1f3faa11f8412c93b08ccd37052487",
+      "name": "Вогнутая стена — форма",
+      "kind": "polygon_shape",
+      "parent": "96c6407eba1b4a6fabce347727df9110",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          200,
+          0
+        ],
+        [
+          200,
+          30
+        ],
+        [
+          35,
+          30
+        ],
+        [
+          35,
+          190
+        ],
+        [
+          0,
+          190
+        ]
+      ]
+    },
+    "14d429d01841408fa65f019687dc9f92": {
+      "id": "14d429d01841408fa65f019687dc9f92",
+      "name": "Поворот учитывается",
+      "kind": "static_body",
+      "parent": null,
+      "transform": {
+        "x": 760,
+        "y": 180,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "e585f1bd4dbd4f64bd977fd61ebee663": {
+      "id": "e585f1bd4dbd4f64bd977fd61ebee663",
+      "name": "Поворот учитывается — форма",
+      "kind": "rect_shape",
+      "parent": "14d429d01841408fa65f019687dc9f92",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 30
+      },
+      "image": null,
+      "graph": null,
+      "width": 20,
+      "height": 150,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "eb5905746957444eb96867d067942a81": {
+      "id": "eb5905746957444eb96867d067942a81",
+      "name": "Второе управляемое тело",
+      "kind": "controlled_body",
+      "parent": null,
+      "transform": {
+        "x": 190,
+        "y": 420,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "c1edc7115fdc48899ffe6e02866afd41": {
+      "id": "c1edc7115fdc48899ffe6e02866afd41",
+      "name": "Второе управляемое тело — форма",
+      "kind": "rect_shape",
+      "parent": "eb5905746957444eb96867d067942a81",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 40,
+      "height": 40,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    }
+  },
+  "graphs": {
+    "9cddbb24cc4949d0b969e8ab649399ff": {
+      "id": "9cddbb24cc4949d0b969e8ab649399ff",
+      "name": "Управление персонажем",
+      "kind": "behavior",
+      "nodes": {
+        "fa40cce1807b4941b7d17866bd320fab": {
+          "id": "fa40cce1807b4941b7d17866bd320fab",
+          "kind": "frame",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "c88fa4f00d6b496fac56ffbef6f1ed5a": {
+          "id": "c88fa4f00d6b496fac56ffbef6f1ed5a",
+          "kind": "body_move",
+          "name": "",
+          "x": 1260,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "22498146094444618f6b8db750496fd5": {
+          "id": "22498146094444618f6b8db750496fd5",
+          "kind": "normalize",
+          "name": "",
+          "x": 420,
+          "y": 300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "f84ebd8946164629ad3efe38e71cd2ee": {
+          "id": "f84ebd8946164629ad3efe38e71cd2ee",
+          "kind": "vector_scale",
+          "name": "",
+          "x": 840,
+          "y": 300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "dc004dd693c24a6db11313878c54c28b": {
+          "id": "dc004dd693c24a6db11313878c54c28b",
+          "kind": "number",
+          "name": "",
+          "x": 420,
+          "y": 600,
+          "params": {
+            "value": 180
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "60e7d581696a4a65b17a29dec27089aa": {
+          "id": "60e7d581696a4a65b17a29dec27089aa",
+          "kind": "direction",
+          "name": "",
+          "x": 0,
+          "y": 300,
+          "params": {
+            "left": "A",
+            "right": "D",
+            "up": "W",
+            "down": "S"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "3d469760aa29476d84df5bd1d3a9b997": {
+          "id": "3d469760aa29476d84df5bd1d3a9b997",
+          "kind": "contact_begin",
+          "name": "",
+          "x": 0,
+          "y": 1600,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "08b6a7f357584bf4b2e1921e897f7f88": {
+          "id": "08b6a7f357584bf4b2e1921e897f7f88",
+          "kind": "read",
+          "name": "",
+          "x": 420,
+          "y": 1850,
+          "params": {
+            "variable": "d539853a5e624e06ab5f97b1d71b3d8b"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "5b7a12f1906e4a1e8fde4d9156a31104": {
+          "id": "5b7a12f1906e4a1e8fde4d9156a31104",
+          "kind": "number",
+          "name": "",
+          "x": 420,
+          "y": 2100,
+          "params": {
+            "value": 1
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "7c304eafc50844caa5461374a88337fb": {
+          "id": "7c304eafc50844caa5461374a88337fb",
+          "kind": "add",
+          "name": "",
+          "x": 840,
+          "y": 1850,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "984c691df9ac45e5b1305242966eed27": {
+          "id": "984c691df9ac45e5b1305242966eed27",
+          "kind": "write",
+          "name": "",
+          "x": 1260,
+          "y": 1600,
+          "params": {
+            "variable": "d539853a5e624e06ab5f97b1d71b3d8b"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "65d62e235faf4e02aa22d94ce24cb15f": {
+          "id": "65d62e235faf4e02aa22d94ce24cb15f",
+          "kind": "contact_end",
+          "name": "",
+          "x": 0,
+          "y": 2050,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "4766cd430a81463db044a27419bd9b1d": {
+          "id": "4766cd430a81463db044a27419bd9b1d",
+          "kind": "read",
+          "name": "",
+          "x": 420,
+          "y": 2300,
+          "params": {
+            "variable": "0e44fc9e14aa47d8b5a527d571ae034d"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "d774090d2792477887971bcb2ab9e894": {
+          "id": "d774090d2792477887971bcb2ab9e894",
+          "kind": "number",
+          "name": "",
+          "x": 420,
+          "y": 2550,
+          "params": {
+            "value": 1
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "05d80010ba7f436cbe647a9023437f17": {
+          "id": "05d80010ba7f436cbe647a9023437f17",
+          "kind": "add",
+          "name": "",
+          "x": 840,
+          "y": 2300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "4ff21e01dc834f4d86e3614a4210918f": {
+          "id": "4ff21e01dc834f4d86e3614a4210918f",
+          "kind": "write",
+          "name": "",
+          "x": 1260,
+          "y": 2050,
+          "params": {
+            "variable": "0e44fc9e14aa47d8b5a527d571ae034d"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "fa40cce1807b4941b7d17866bd320fab",
+          "output": "next",
+          "target": "c88fa4f00d6b496fac56ffbef6f1ed5a",
+          "input": "in",
+          "id": "276fc826d027408a8ff834a67156777b"
+        },
+        {
+          "source": "fa40cce1807b4941b7d17866bd320fab",
+          "output": "object",
+          "target": "c88fa4f00d6b496fac56ffbef6f1ed5a",
+          "input": "object",
+          "id": "4b233fde9e9e4d9987209f8160760ff7"
+        },
+        {
+          "source": "22498146094444618f6b8db750496fd5",
+          "output": "value",
+          "target": "f84ebd8946164629ad3efe38e71cd2ee",
+          "input": "vector",
+          "id": "d7073fd9ef244c1f8ba4cfb5bfd05942"
+        },
+        {
+          "source": "dc004dd693c24a6db11313878c54c28b",
+          "output": "value",
+          "target": "f84ebd8946164629ad3efe38e71cd2ee",
+          "input": "factor",
+          "id": "3647281ddfff4236a30700b2191b3e2b"
+        },
+        {
+          "source": "f84ebd8946164629ad3efe38e71cd2ee",
+          "output": "value",
+          "target": "c88fa4f00d6b496fac56ffbef6f1ed5a",
+          "input": "velocity",
+          "id": "d062d2e2a8b444a9bb4f80a0bda5e865"
+        },
+        {
+          "source": "60e7d581696a4a65b17a29dec27089aa",
+          "output": "value",
+          "target": "22498146094444618f6b8db750496fd5",
+          "input": "vector",
+          "id": "2029501c88b747f59d6a446bab083466"
+        },
+        {
+          "source": "08b6a7f357584bf4b2e1921e897f7f88",
+          "output": "value",
+          "target": "7c304eafc50844caa5461374a88337fb",
+          "input": "a",
+          "id": "5973abfbf77642faa318f5bfd6c1219b"
+        },
+        {
+          "source": "5b7a12f1906e4a1e8fde4d9156a31104",
+          "output": "value",
+          "target": "7c304eafc50844caa5461374a88337fb",
+          "input": "b",
+          "id": "e8f2ad6f23c741fb84096f9796a832ee"
+        },
+        {
+          "source": "7c304eafc50844caa5461374a88337fb",
+          "output": "value",
+          "target": "984c691df9ac45e5b1305242966eed27",
+          "input": "value",
+          "id": "cdcdc08d596d45a1855c6167452a2042"
+        },
+        {
+          "source": "3d469760aa29476d84df5bd1d3a9b997",
+          "output": "next",
+          "target": "984c691df9ac45e5b1305242966eed27",
+          "input": "in",
+          "id": "ffd2f9126d9e4eb59413830eae4e96ac"
+        },
+        {
+          "source": "4766cd430a81463db044a27419bd9b1d",
+          "output": "value",
+          "target": "05d80010ba7f436cbe647a9023437f17",
+          "input": "a",
+          "id": "73d6619e682a4ca68e184869e2dcfb10"
+        },
+        {
+          "source": "d774090d2792477887971bcb2ab9e894",
+          "output": "value",
+          "target": "05d80010ba7f436cbe647a9023437f17",
+          "input": "b",
+          "id": "6f261325e4c74f18b088a2f9fef8722a"
+        },
+        {
+          "source": "05d80010ba7f436cbe647a9023437f17",
+          "output": "value",
+          "target": "4ff21e01dc834f4d86e3614a4210918f",
+          "input": "value",
+          "id": "fc838ddd800d4198a78d663fef9bfe25"
+        },
+        {
+          "source": "65d62e235faf4e02aa22d94ce24cb15f",
+          "output": "next",
+          "target": "4ff21e01dc834f4d86e3614a4210918f",
+          "input": "in",
+          "id": "b13eb693e53448e8a83de428f7a11e85"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {
+    "d539853a5e624e06ab5f97b1d71b3d8b": {
+      "id": "d539853a5e624e06ab5f97b1d71b3d8b",
+      "name": "Начал контактов",
+      "type": "number",
+      "scope": "object",
+      "value": 0,
+      "owner": null
+    },
+    "0e44fc9e14aa47d8b5a527d571ae034d": {
+      "id": "0e44fc9e14aa47d8b5a527d571ae034d",
+      "name": "Закончил контактов",
+      "type": "number",
+      "scope": "object",
+      "value": 0,
+      "owner": null
+    }
+  },
+  "format_version": 1
+}

@@ -65,6 +65,10 @@ class SceneNode:
     transform: Transform = field(default_factory=Transform)
     image: str | None = None
     graph: str | None = None
+    width: float = 64
+    height: float = 64
+    radius: float = 32
+    points: list = field(default_factory=lambda: [[-32,-32],[32,-32],[32,32],[-32,32]])
 
 @dataclass
 class Variable:
@@ -223,8 +227,16 @@ class Project:
             all_ids.add(key)
         for key, node in self.nodes.items():
             identity(key, node)
-            if node.kind not in ('transform', 'sprite') or not isinstance(node.name, str):
+            if node.kind not in ('transform', 'sprite', 'static_body', 'controlled_body', 'rect_shape', 'circle_shape', 'polygon_shape') or not isinstance(node.name, str):
                 raise ValueError('Неизвестный тип объекта сцены')
+            if node.kind.endswith('_shape'):
+                from .physics import shape_points, BODIES
+                try:
+                    shape_points(node)
+                except ValueError as exc:
+                    raise ValueError(f'Форма {node.name} [{key}]: {exc}') from exc
+                if node.parent not in self.nodes or self.nodes[node.parent].kind not in BODIES:
+                    raise ValueError('Форма должна быть непосредственным ребёнком физического тела')
             if not all(number(v) for v in asdict(node.transform).values()):
                 raise ValueError('Преобразование содержит нечисловые значения')
             if node.transform.sx == 0 or node.transform.sy == 0:

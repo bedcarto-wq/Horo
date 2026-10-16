@@ -6,6 +6,8 @@ from PySide6.QtGui import QColor, QPen, QBrush, QPixmap, QTransform, QPainter
 from PySide6.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsItem, QWidget,
                               QVBoxLayout, QHBoxLayout, QCheckBox, QComboBox, QPushButton)
 from ..storage import asset_path
+from ..physics import SHAPES, BODIES, shape_points
+from .contour import ContourTool
 
 class ObjectItem(QGraphicsItem):
     def __init__(self, node, canvas, parent=None):
@@ -28,6 +30,11 @@ class ObjectItem(QGraphicsItem):
         self.setTransform(QTransform.fromScale(t.sx, t.sy))
 
     def boundingRect(self):
+        if self.node.kind in SHAPES:
+            if self.node.kind == 'circle_shape':
+                r=self.node.radius; return QRectF(-r,-r,2*r,2*r).adjusted(-2,-2,2,2)
+            points=shape_points(self.node);xs=[p[0] for p in points];ys=[p[1] for p in points]
+            return QRectF(min(xs),min(ys),max(xs)-min(xs),max(ys)-min(ys)).adjusted(-2,-2,2,2)
         if self.node.kind == 'sprite':
             if not self.pixmap.isNull():
                 return QRectF(0, 0, self.pixmap.width(), self.pixmap.height())
@@ -36,7 +43,15 @@ class ObjectItem(QGraphicsItem):
 
     def paint(self, painter, option, widget=None):
         rect = self.boundingRect()
-        if self.node.kind == 'sprite':
+        if self.node.kind in SHAPES:
+            painter.setPen(QPen(QColor('#69d5b0'),1.5))
+            painter.setBrush(QColor(46,130,112,65))
+            if self.node.kind == 'circle_shape':
+                r=self.node.radius;painter.drawEllipse(QRectF(-r,-r,2*r,2*r))
+            else:
+                from PySide6.QtGui import QPolygonF
+                painter.drawPolygon(QPolygonF([QPointF(*p) for p in shape_points(self.node)]))
+        elif self.node.kind == 'sprite':
             if not self.pixmap.isNull():
                 painter.drawPixmap(0, 0, self.pixmap)
             else:
@@ -94,6 +109,8 @@ class SceneCanvas(QGraphicsView):
     changed = Signal(object, str)
     chosen = Signal(str)
     assetDropped = Signal(str, object)
+    contourCommitted = Signal(str, object)
+    message = Signal(str)
 
     def __init__(self, editable=True):
         super().__init__()
@@ -104,6 +121,7 @@ class SceneCanvas(QGraphicsView):
         self.project = None; self.folder = None; self.items_by_id = {}
         self.grid = True; self.snap = False; self.mode = 'move'; self.before = None
         self.panning = False
+        self.contour = ContourTool(self)
         self.setBackgroundBrush(QColor('#0d1520'))
         self.scene().selectionChanged.connect(self.selection_changed)
 
@@ -115,6 +133,7 @@ class SceneCanvas(QGraphicsView):
     def build(self, project, folder, selected=None):
         self.project, self.folder = project, folder
         self.scene().blockSignals(True)
+        self.contour.overlays = [] # Qt deletes the previous scene-owned overlays.
         self.scene().clear(); self.items_by_id = {}
         def add(key):
             if key in self.items_by_id:
@@ -135,6 +154,8 @@ class SceneCanvas(QGraphicsView):
         if selected in self.items_by_id:
             self.items_by_id[selected].setSelected(True)
         self.scene().blockSignals(False)
+        if self.contour.node_id not in project.nodes:self.contour.node_id=None
+        self.contour.render()
 
     def drawBackground(self, painter, rect):
         super().drawBackground(painter, rect)
@@ -157,12 +178,14 @@ class SceneCanvas(QGraphicsView):
             super().wheelEvent(event)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.MiddleButton and self.editable:
-            self.panning = True; self.pan_start = event.position()
+        if self.editable and self.contour.press(event):event.accept();return
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self.panning = self.editable; self.pan_start = event.position()
             event.accept(); return
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        if self.editable and self.contour.move(event):event.accept();return
         if self.panning:
             delta = event.position() - self.pan_start; self.pan_start = event.position()
             self.horizontalScrollBar().setValue(self.horizontalScrollBar().value()-int(delta.x()))
@@ -171,9 +194,14 @@ class SceneCanvas(QGraphicsView):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        if self.editable and self.contour.release(event):event.accept();return
         if event.button() == Qt.MouseButton.MiddleButton:
             self.panning = False
         super().mouseReleaseEvent(event)
+
+    def keyPressEvent(self,event):
+        if self.editable and self.contour.key(event):event.accept();return
+        super().keyPressEvent(event)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasFormat('application/x-horo-asset'):

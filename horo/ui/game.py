@@ -80,7 +80,7 @@ class GameWindow(QWidget):
             self.setWindowTitle('Horo — Внутренняя ошибка: игра остановлена')
 
     def focusOutEvent(self, event):
-        self.held.clear(); super().focusOutEvent(event)
+        self.held.clear(); self.runtime.held.clear(); super().focusOutEvent(event)
 
     def closeEvent(self, event):
         self.timer.stop(); self.runtime.stop(); self.held.clear(); self.finished.emit(); event.accept()

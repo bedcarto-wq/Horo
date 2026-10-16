@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QDockWidget, QWidget, 
     QMenu, QMessageBox, QFileDialog, QInputDialog, QDialog, QPlainTextEdit, QTextEdit)
 from ..model import Project, Graph, SceneNode, Variable, TYPE_LABELS, uid
 from ..history import History
+from ..physics import SHAPES, BODIES
 from ..storage import save_project, load_project, import_asset, asset_path, PROJECT_FILE
 from ..validation import connect, validate_project, region_ancestors
 from ..errors import Diagnostic, GraphError
@@ -129,11 +130,17 @@ class MainWindow(QMainWindow):
         self.action(scene_menu, 'Добавить 2D-преобразование', lambda: self.add_scene('transform'))
         self.action(scene_menu, 'Добавить изображение', lambda: self.add_scene('sprite'))
         self.action(scene_menu, 'Удалить выбранный объект', self.remove_scene)
+        for kind,title in [('static_body','Неподвижное тело'),('controlled_body','Управляемое тело'),('rect_shape','Прямоугольная форма'),('circle_shape','Круглая форма'),('polygon_shape','Многоугольная форма')]:
+            self.action(scene_menu,title,lambda checked=False,k=kind:self.add_scene(k))
+        self.action(scene_menu,'Редактировать контур',lambda:self.scene_editor.canvas.contour.begin(self.selected))
+        self.action(scene_menu,'Нарисовать новый контур',lambda:self.scene_editor.canvas.contour.begin(self.selected,True))
+        self.action(scene_menu,'Завершить контур',lambda:self.scene_editor.canvas.contour.finish())
+        self.action(scene_menu,'Отменить черновик контура',lambda:self.scene_editor.canvas.contour.cancel())
         run = self.menuBar().addMenu('Игра')
         self.run_action = self.action(run, 'Запустить', self.run_game, 'F5')
         self.stop_action = self.action(run, 'Остановить', self.stop_game, 'F6')
         help_menu = self.menuBar().addMenu('Помощь')
-        self.action(help_menu, 'Управление', lambda: QMessageBox.information(self, 'Horo 0.2.0',
+        self.action(help_menu, 'Управление', lambda: QMessageBox.information(self, 'Horo 0.3.0',
             'Сцена: колесо — масштаб вида; средняя кнопка — перемещение вида.\n'
             'Преобразование: выберите режим и перетащите объект.\n'
             'Граф: ПКМ на фоне — поиск; категории — drag & drop.\n'
@@ -150,6 +157,8 @@ class MainWindow(QMainWindow):
         save = QAction('Сохранить', self); save.triggered.connect(self.save); toolbar.addAction(save)
 
     def wire(self):
+        self.scene_editor.canvas.contourCommitted.connect(self.commit_contour)
+        self.scene_editor.canvas.message.connect(self.message)
         self.tree.itemSelectionChanged.connect(self.tree_selected)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.tree_menu)
@@ -210,6 +219,7 @@ class MainWindow(QMainWindow):
             self.edit(label, callback)
 
     def undo(self):
+        self.scene_editor.canvas.contour.cancel()
         widget = self.focusWidget()
         if isinstance(widget, (QLineEdit, QPlainTextEdit, QTextEdit)):
             widget.undo(); return
@@ -218,6 +228,7 @@ class MainWindow(QMainWindow):
             self.project = p; self.refresh()
 
     def redo(self):
+        self.scene_editor.canvas.contour.cancel()
         widget = self.focusWidget()
         if isinstance(widget, (QLineEdit, QPlainTextEdit, QTextEdit)):
             widget.redo(); return
@@ -239,14 +250,14 @@ class MainWindow(QMainWindow):
         graph = self.current_graph()
         if graph and self.region not in graph.nodes:
             self.region = None
-        self.setWindowTitle(f'Horo 0.2.0 — {self.project.name}' + (' *' if self.dirty() else ''))
+        self.setWindowTitle(f'Horo 0.3.0 — {self.project.name}' + (' *' if self.dirty() else ''))
         self.tree.blockSignals(True); self.tree.clear()
         tree_items = {}
         def add(key):
             if key in tree_items:
                 return tree_items[key]
             node = self.project.nodes[key]
-            item = QTreeWidgetItem([node.name + (' · Изображение' if node.kind == 'sprite' else ' · 2D')])
+            item = QTreeWidgetItem([node.name + ' · ' + {'sprite':'Изображение','transform':'2D','static_body':'Неподвижное тело','controlled_body':'Управляемое тело','rect_shape':'Прямоугольник','circle_shape':'Круг','polygon_shape':'Контур'}.get(node.kind,node.kind)])
             item.setData(0, Qt.ItemDataRole.UserRole, key); item.setToolTip(0, key)
             if node.parent:
                 add(node.parent).addChild(item)
@@ -255,6 +266,7 @@ class MainWindow(QMainWindow):
             tree_items[key] = item; return item
         for key in self.project.nodes:
             add(key)
+        self._scene_tree_items = tree_items
         self.tree.expandAll()
         if self.selected in tree_items:
             self.tree.setCurrentItem(tree_items[self.selected])
@@ -291,6 +303,18 @@ class MainWindow(QMainWindow):
         if not node:
             self.props_form.addRow(QLabel('Выберите объект в дереве или на сцене')); return
         key = node.id
+        if node.kind in SHAPES:
+            fields=[('Ширина','width'),('Высота','height')] if node.kind=='rect_shape' else [('Радиус','radius')] if node.kind=='circle_shape' else []
+            for label,attr in fields:
+                spin=QDoubleSpinBox();spin.setRange(.25,1000000);spin.setDecimals(3);spin.setValue(getattr(node,attr))
+                spin.editingFinished.connect(lambda a=attr,s=spin:self.defer_property(key,a,s.value()))
+                self.props_form.addRow(label,spin)
+            if node.kind=='polygon_shape':
+                for label,new in [('Редактировать точки',False),('Нарисовать заново',True)]:
+                    button=QPushButton(label);button.clicked.connect(lambda checked=False,new=new:self.scene_editor.canvas.contour.begin(key,new))
+                    self.props_form.addRow(button)
+                self.props_form.addRow(QLabel('Enter — завершить; Escape — отменить черновик.\nShift+клик по ребру — вставить; Delete — убрать точку.'))
+            self.props_form.addRow(QLabel('Физика: только положительный равномерный масштаб.'))
         name = QLineEdit(node.name)
         name.editingFinished.connect(lambda: self.defer_property(key, 'name', name.text()))
         self.props_form.addRow('Имя', name)
@@ -379,12 +403,8 @@ class MainWindow(QMainWindow):
         if self.selected != key and key in self.project.nodes:
             self.selected = key
             self.loading = True
-            iterator = QTreeWidgetItemIterator(self.tree)
-            while iterator.value():
-                item = iterator.value()
-                if item.data(0, Qt.ItemDataRole.UserRole) == key:
-                    self.tree.setCurrentItem(item); break
-                iterator += 1
+            item = getattr(self,'_scene_tree_items',{}).get(key)
+            if item is not None:self.tree.setCurrentItem(item)
             scene = self.scene_editor.canvas.scene()
             scene.blockSignals(True); scene.clearSelection()
             if key in self.scene_editor.canvas.items_by_id:
@@ -392,9 +412,18 @@ class MainWindow(QMainWindow):
             scene.blockSignals(False)
             self.refresh_props(); self.loading = False
 
+    def commit_contour(self,key,points):
+        if key in self.project.nodes:
+            self.deferred_edit('Контур формы',lambda:setattr(self.project.nodes[key],'points',points))
+
     def add_scene(self, kind, image=None, position=None):
+        if kind in SHAPES and (self.selected not in self.project.nodes or self.project.nodes[self.selected].kind not in BODIES):
+            self.message('Сначала выберите физическое тело — родителя формы');return
         node = SceneNode(kind=kind, name='Изображение' if kind == 'sprite' else 'Преобразование 2D',
                          parent=None if position is not None else self.selected, image=image)
+        names={'static_body':'Неподвижное тело','controlled_body':'Управляемое тело','rect_shape':'Прямоугольная форма','circle_shape':'Круглая форма','polygon_shape':'Многоугольная форма'}
+        node.name=names.get(kind,node.name)
+        if kind in BODIES and (node.parent is not None and self.project.nodes[node.parent].kind != 'transform'):node.parent=None
         if position is not None:
             node.transform.x, node.transform.y = position.x(), position.y()
         def apply():
@@ -658,6 +687,7 @@ class MainWindow(QMainWindow):
             self.message('Ошибка создания проекта: '+str(exc))
 
     def replace_project(self, project, folder):
+        self.scene_editor.canvas.contour.cancel()
         self.pending_edits.clear()
         self.stop_game(); self.project = project; self.folder = Path(folder)
         self.saved = project.to_dict(); self.history = History()

@@ -143,7 +143,13 @@ class CardItem(QGraphicsItem):
         elif node.kind == 'vector':
             text_field('X по умолчанию', 'x', 'number', 0)
             text_field('Y по умолчанию', 'y', 'number', 0)
-        elif node.kind in ('key', 'key_release'):
+        elif node.kind == 'direction':
+            for label,key,default in [('Влево','left','A'),('Вправо','right','D'),('Вверх','up','W'),('Вниз','down','S')]:
+                combo = QComboBox(); combo.addItems(['Space','Left','Right','Up','Down','Return','Escape']+list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'))
+                combo.setCurrentText(node.params.get(key,default))
+                combo.currentTextChanged.connect(lambda value,k=key: self.update_param(k,value))
+                form.addRow(label,combo)
+        elif node.kind in ('key', 'key_release', 'held'):
             combo = QComboBox(); combo.addItems(['Space', 'Left', 'Right', 'Up', 'Down', 'Return', 'Escape']+list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'))
             combo.setCurrentText(node.params.get('key', 'Space'))
             combo.currentTextChanged.connect(lambda value: self.update_param('key', value))

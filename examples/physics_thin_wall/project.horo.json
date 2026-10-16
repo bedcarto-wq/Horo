@@ -1,0 +1,476 @@
+{
+  "name": "Непрерывная проверка тонкой стены",
+  "width": 960,
+  "height": 640,
+  "nodes": {
+    "f0b3876489aa412f8bb37a5915e2bc24": {
+      "id": "f0b3876489aa412f8bb37a5915e2bc24",
+      "name": "Тело",
+      "kind": "controlled_body",
+      "parent": null,
+      "transform": {
+        "x": 80,
+        "y": 320,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": "3963bca0b15a4fa2aa96a106711314c0",
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "cb48036b36dd461da99ff0c315989e29": {
+      "id": "cb48036b36dd461da99ff0c315989e29",
+      "name": "Тело — форма",
+      "kind": "circle_shape",
+      "parent": "f0b3876489aa412f8bb37a5915e2bc24",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 10,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "0e7e1a59a0fa4cd793d22eb103e47f7e": {
+      "id": "0e7e1a59a0fa4cd793d22eb103e47f7e",
+      "name": "Стена 0.5",
+      "kind": "static_body",
+      "parent": null,
+      "transform": {
+        "x": 480,
+        "y": 320,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "9eac873c1bd548cd9159b4369ca4acad": {
+      "id": "9eac873c1bd548cd9159b4369ca4acad",
+      "name": "Стена 0.5 — форма",
+      "kind": "rect_shape",
+      "parent": "0e7e1a59a0fa4cd793d22eb103e47f7e",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 0.5,
+      "height": 600,
+      "radius": 32,
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    }
+  },
+  "graphs": {
+    "3963bca0b15a4fa2aa96a106711314c0": {
+      "id": "3963bca0b15a4fa2aa96a106711314c0",
+      "name": "Управление персонажем",
+      "kind": "behavior",
+      "nodes": {
+        "b96abee866c24bbaa26301bdb638b6ae": {
+          "id": "b96abee866c24bbaa26301bdb638b6ae",
+          "kind": "frame",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "cd7db4019f424d51b62a1481ca8bdf8e": {
+          "id": "cd7db4019f424d51b62a1481ca8bdf8e",
+          "kind": "body_move",
+          "name": "",
+          "x": 1260,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "3a8ae3565c9248978ae633fe1edbb224": {
+          "id": "3a8ae3565c9248978ae633fe1edbb224",
+          "kind": "normalize",
+          "name": "",
+          "x": 420,
+          "y": 300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "125c2b2ea4da48abb14df04e133295ac": {
+          "id": "125c2b2ea4da48abb14df04e133295ac",
+          "kind": "vector_scale",
+          "name": "",
+          "x": 840,
+          "y": 300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "e04785355937496eba7e6132b8f53998": {
+          "id": "e04785355937496eba7e6132b8f53998",
+          "kind": "number",
+          "name": "",
+          "x": 420,
+          "y": 600,
+          "params": {
+            "value": 10000
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "5123db3051504874bce90d9732302008": {
+          "id": "5123db3051504874bce90d9732302008",
+          "kind": "direction",
+          "name": "",
+          "x": 0,
+          "y": 300,
+          "params": {
+            "left": "A",
+            "right": "D",
+            "up": "W",
+            "down": "S"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "5368034c390946b0ae5373605134f654": {
+          "id": "5368034c390946b0ae5373605134f654",
+          "kind": "contact_begin",
+          "name": "",
+          "x": 0,
+          "y": 1600,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "eba43bb5177e4acc82567734de1cc837": {
+          "id": "eba43bb5177e4acc82567734de1cc837",
+          "kind": "read",
+          "name": "",
+          "x": 420,
+          "y": 1850,
+          "params": {
+            "variable": "bb3547519c354fb1ad31255273da17a7"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "8531369c438c43b0b129ef908c37e7ff": {
+          "id": "8531369c438c43b0b129ef908c37e7ff",
+          "kind": "number",
+          "name": "",
+          "x": 420,
+          "y": 2100,
+          "params": {
+            "value": 1
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "fcdf01a143714f849313ccafb0ed3cef": {
+          "id": "fcdf01a143714f849313ccafb0ed3cef",
+          "kind": "add",
+          "name": "",
+          "x": 840,
+          "y": 1850,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "5f2268dcfbf341baa3a0e24cc76026d5": {
+          "id": "5f2268dcfbf341baa3a0e24cc76026d5",
+          "kind": "write",
+          "name": "",
+          "x": 1260,
+          "y": 1600,
+          "params": {
+            "variable": "bb3547519c354fb1ad31255273da17a7"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "71eeff838a3c4c6d864de6f9df65ec5a": {
+          "id": "71eeff838a3c4c6d864de6f9df65ec5a",
+          "kind": "contact_end",
+          "name": "",
+          "x": 0,
+          "y": 2050,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "fc9da8508c244e439f5ad52bf80b1ee7": {
+          "id": "fc9da8508c244e439f5ad52bf80b1ee7",
+          "kind": "read",
+          "name": "",
+          "x": 420,
+          "y": 2300,
+          "params": {
+            "variable": "563f9a286d044c438c22468b8d022567"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "380ed50de9424542a20f4649def8b868": {
+          "id": "380ed50de9424542a20f4649def8b868",
+          "kind": "number",
+          "name": "",
+          "x": 420,
+          "y": 2550,
+          "params": {
+            "value": 1
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "6278697e9f9842ed89fb84d6b6c7f261": {
+          "id": "6278697e9f9842ed89fb84d6b6c7f261",
+          "kind": "add",
+          "name": "",
+          "x": 840,
+          "y": 2300,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "98bbbef2a991492283c41496135b8dc0": {
+          "id": "98bbbef2a991492283c41496135b8dc0",
+          "kind": "write",
+          "name": "",
+          "x": 1260,
+          "y": 2050,
+          "params": {
+            "variable": "563f9a286d044c438c22468b8d022567"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "b96abee866c24bbaa26301bdb638b6ae",
+          "output": "next",
+          "target": "cd7db4019f424d51b62a1481ca8bdf8e",
+          "input": "in",
+          "id": "208eebcb68f64e99a8314b9e7db21021"
+        },
+        {
+          "source": "b96abee866c24bbaa26301bdb638b6ae",
+          "output": "object",
+          "target": "cd7db4019f424d51b62a1481ca8bdf8e",
+          "input": "object",
+          "id": "f14ee6e48dc24cd0b4408be509c886e7"
+        },
+        {
+          "source": "3a8ae3565c9248978ae633fe1edbb224",
+          "output": "value",
+          "target": "125c2b2ea4da48abb14df04e133295ac",
+          "input": "vector",
+          "id": "b5f180f713bf4a0abe0db6365a77b535"
+        },
+        {
+          "source": "e04785355937496eba7e6132b8f53998",
+          "output": "value",
+          "target": "125c2b2ea4da48abb14df04e133295ac",
+          "input": "factor",
+          "id": "5a9209e85e45410194b421b1fc58d8d8"
+        },
+        {
+          "source": "125c2b2ea4da48abb14df04e133295ac",
+          "output": "value",
+          "target": "cd7db4019f424d51b62a1481ca8bdf8e",
+          "input": "velocity",
+          "id": "629a293568a645129583f06d2574d52c"
+        },
+        {
+          "source": "5123db3051504874bce90d9732302008",
+          "output": "value",
+          "target": "3a8ae3565c9248978ae633fe1edbb224",
+          "input": "vector",
+          "id": "f8915cfa2c9748f88c54edf476cf7713"
+        },
+        {
+          "source": "eba43bb5177e4acc82567734de1cc837",
+          "output": "value",
+          "target": "fcdf01a143714f849313ccafb0ed3cef",
+          "input": "a",
+          "id": "1761fc49a1d745aa8a8ab29eb6564f09"
+        },
+        {
+          "source": "8531369c438c43b0b129ef908c37e7ff",
+          "output": "value",
+          "target": "fcdf01a143714f849313ccafb0ed3cef",
+          "input": "b",
+          "id": "500d8a9383094d5589e9fbe4b532d51b"
+        },
+        {
+          "source": "fcdf01a143714f849313ccafb0ed3cef",
+          "output": "value",
+          "target": "5f2268dcfbf341baa3a0e24cc76026d5",
+          "input": "value",
+          "id": "4f0541ed3361418392e670a5417034b7"
+        },
+        {
+          "source": "5368034c390946b0ae5373605134f654",
+          "output": "next",
+          "target": "5f2268dcfbf341baa3a0e24cc76026d5",
+          "input": "in",
+          "id": "5c4e2b35767947a2bd5ec33f1f7097ec"
+        },
+        {
+          "source": "fc9da8508c244e439f5ad52bf80b1ee7",
+          "output": "value",
+          "target": "6278697e9f9842ed89fb84d6b6c7f261",
+          "input": "a",
+          "id": "ffac95b5efa24d6e899fce38c8e7b6f9"
+        },
+        {
+          "source": "380ed50de9424542a20f4649def8b868",
+          "output": "value",
+          "target": "6278697e9f9842ed89fb84d6b6c7f261",
+          "input": "b",
+          "id": "94fa517e8cfa4393a61dd24e18231a70"
+        },
+        {
+          "source": "6278697e9f9842ed89fb84d6b6c7f261",
+          "output": "value",
+          "target": "98bbbef2a991492283c41496135b8dc0",
+          "input": "value",
+          "id": "a2fc18e9fb114867b0578c919e9ad96b"
+        },
+        {
+          "source": "71eeff838a3c4c6d864de6f9df65ec5a",
+          "output": "next",
+          "target": "98bbbef2a991492283c41496135b8dc0",
+          "input": "in",
+          "id": "fdeebcb7474b4f408a52b6b66f98c731"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {
+    "bb3547519c354fb1ad31255273da17a7": {
+      "id": "bb3547519c354fb1ad31255273da17a7",
+      "name": "Начал контактов",
+      "type": "number",
+      "scope": "object",
+      "value": 0,
+      "owner": null
+    },
+    "563f9a286d044c438c22468b8d022567": {
+      "id": "563f9a286d044c438c22468b8d022567",
+      "name": "Закончил контактов",
+      "type": "number",
+      "scope": "object",
+      "value": 0,
+      "owner": null
+    }
+  },
+  "format_version": 1
+}

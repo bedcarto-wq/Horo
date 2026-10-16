@@ -7,6 +7,8 @@ import itertools
 import time
 from collections import deque
 from .scheduling import Scope, Task
+from .physics import PhysicsWorld, PhysicsError, BODIES
+from .geometry import unit
 from .ports import STARTS, LOOPS
 from .model import initial, valid_value, number
 from .errors import Diagnostic, GraphError
@@ -50,12 +52,20 @@ class Runtime:
         self.step_limit = step_limit
         self.steps = 0
         self.running = True
+        self.held = set(); self.contact_queue = []; self.physics = None
+        if any(n.kind in BODIES for n in self.project.nodes.values()):
+            try:
+                self.physics = PhysicsWorld(self.project)
+            except PhysicsError as exc:
+                raise GraphError(Diagnostic(str(exc), object_id=exc.body, shape_id=exc.shape)) from exc
         self.game = {v.id: copy.deepcopy(v.value) for v in project.variables.values() if v.scope == 'game'}
         self.objects = {oid: {v.id: copy.deepcopy(v.value) for v in project.variables.values()
                               if v.scope == 'object'} for oid in project.nodes}
 
     def stop(self):
         self.running = False
+        self.held.clear(); self.contact_queue.clear()
+        if self.physics: self.physics.stop()
         for scope in self.scopes.values():
             scope.cancelled = True; scope.done = True; scope.children.clear()
         self.tasks.clear(); self.scopes.clear(); self.ready.clear(); self.sleepers.clear()
@@ -111,7 +121,19 @@ class Runtime:
         if node.id not in cache:
             self.tick(frame, node)
             kind = node.kind
-            if kind in ('number', 'text', 'bool', 'object'):
+            if kind == 'held':
+                values = {'value': node.params.get('key','Space') in self.held}
+            elif kind == 'direction':
+                keys = {k: node.params.get(k,d) in self.held for k,d in [('left','A'),('right','D'),('up','W'),('down','S')]}
+                values = {'value': [int(keys['right'])-int(keys['left']),int(keys['down'])-int(keys['up'])]}
+            elif kind in ('normalize','vector_scale'):
+                v = self.check(frame,node,'vector',self.input(frame,node,'vector',cache))
+                if kind == 'normalize': result = list(unit(v))
+                else:
+                    factor = self.check(frame,node,'number',self.input(frame,node,'factor',cache))
+                    result = [v[0]*factor,v[1]*factor]
+                values = {'value': self.check(frame,node,'vector',result)}
+            elif kind in ('number', 'text', 'bool', 'object'):
                 value = node.params.get('value', initial(kind))
                 values = {'value': self.check(frame, node, kind, value)}
             elif kind == 'vector':
@@ -123,7 +145,7 @@ class Runtime:
                     self.fail(frame, node, 'Данные другого старта недоступны в этом запуске')
                 values = {'object': frame.object_id, 'time': frame.event.get('time', 0),
                           'key': frame.event.get('key', node.params.get('key', 'Space')),
-                          'delta': frame.event.get('delta', 0)}
+                          'delta': frame.event.get('delta', 0), 'other': frame.event.get('other')}
             elif kind == 'entry':
                 values = dict(frame.arguments)
             elif kind == 'read':
@@ -278,6 +300,7 @@ class Runtime:
     def key_press(self, key, auto_repeat=False):
         if auto_repeat or not self.running:
             return
+        self.held.add(key)
         self.start(); self._refresh_time()
         self._dispatch('key', key)
         self._drain()
@@ -285,6 +308,7 @@ class Runtime:
     def key_release(self, key, auto_repeat=False):
         if auto_repeat or not self.running:
             return
+        self.held.discard(key)
         self.start(); self._refresh_time()
         self._dispatch('key_release', key)
         self._drain()
@@ -309,8 +333,33 @@ class Runtime:
                 self._ready(task)
         for wake in deferred:
             heapq.heappush(self.sleepers, wake)
+        pending, self.contact_queue = self.contact_queue, []
+        for kind,pair in pending:
+            self._dispatch_contact(kind,pair)
         self._dispatch('frame', delta=delta)
         self._drain()
+        if self.running and self.physics:
+            contexts = dict(self.physics.commands)
+            try:
+                self.contact_queue.extend(self.physics.update(delta))
+            except PhysicsError as exc:
+                context = contexts.get(exc.body, (None,None))[1]
+                self.stop()
+                frame,node = context if context else (None,None)
+                raise GraphError(Diagnostic(str(exc), frame.graph.id if frame else None,
+                    node.id if node else None, exc.body, shape_id=exc.shape)) from exc
+
+    def _dispatch_contact(self,kind,pair):
+        for oid,other in (pair,tuple(reversed(pair))):
+            obj = self.project.nodes.get(oid)
+            if obj is None or obj.graph is None: continue
+            graph = self.project.graphs.get(obj.graph)
+            if graph is None: continue
+            for node in graph.nodes.values():
+                if node.kind != kind: continue
+                frame = self.frame(graph,oid)
+                frame.event = {'start':node.id,'time':self.now-self.origin_time,'other':other}
+                scope = self._new_scope('run',frame); self._spawn(scope,node); self._seal(scope)
 
     def execute(self, frame, node):
         """Compatibility entry: ready work completes now; waits return a cancellable handle."""
@@ -414,6 +463,15 @@ class Runtime:
             if not number(x) or not number(y):
                 self.fail(frame, node, 'Координаты вышли за допустимый числовой диапазон')
             transform.x, transform.y = x, y
+            self._next_task(task)
+        elif kind == 'body_move':
+            oid = self.input(frame,node,'object',cache)
+            velocity = self.check(frame,node,'vector',self.input(frame,node,'velocity',cache))
+            try:
+                if self.physics is None: raise PhysicsError('В сцене нет управляемого тела')
+                self.physics.command(oid,velocity,(frame,node))
+            except PhysicsError as exc:
+                self.fail(frame,node,str(exc))
             self._next_task(task)
         elif kind == 'write':
             var, store = self.store(frame, node, cache)

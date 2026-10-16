@@ -34,7 +34,8 @@ class ObjectItem(QGraphicsItem):
             if self.node.kind == 'circle_shape':
                 r=self.node.radius; return QRectF(-r,-r,2*r,2*r).adjusted(-2,-2,2,2)
             points=shape_points(self.node);xs=[p[0] for p in points];ys=[p[1] for p in points]
-            return QRectF(min(xs),min(ys),max(xs)-min(xs),max(ys)-min(ys)).adjusted(-2,-2,2,2)
+            margin=16 if self.node.one_way else 2
+            return QRectF(min(xs),min(ys),max(xs)-min(xs),max(ys)-min(ys)).adjusted(-margin,-margin,margin,margin)
         if self.node.kind == 'sprite':
             if not self.pixmap.isNull():
                 return QRectF(0, 0, self.pixmap.width(), self.pixmap.height())
@@ -51,6 +52,14 @@ class ObjectItem(QGraphicsItem):
             else:
                 from PySide6.QtGui import QPolygonF
                 painter.drawPolygon(QPolygonF([QPointF(*p) for p in shape_points(self.node)]))
+            if self.node.kind=='rect_shape' and self.node.one_way:
+                nx,ny=self.node.one_way_normal
+                start=QPointF(nx*self.node.width/2,ny*self.node.height/2)
+                end=start+QPointF(nx*14,ny*14)
+                painter.setPen(QPen(QColor('#ffd172'),2))
+                painter.drawLine(start,end)
+                painter.drawLine(end,end+QPointF(-nx*5-ny*4,-ny*5+nx*4))
+                painter.drawLine(end,end+QPointF(-nx*5+ny*4,-ny*5-nx*4))
         elif self.node.kind == 'sprite':
             if not self.pixmap.isNull():
                 painter.drawPixmap(0, 0, self.pixmap)

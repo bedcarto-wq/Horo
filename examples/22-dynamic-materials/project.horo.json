@@ -1,0 +1,588 @@
+{
+  "name": "Динамика: массы, отскок, вращение и трение",
+  "width": 960,
+  "height": 640,
+  "nodes": {
+    "8ad5de32100c4a1ab7771e8fea399065": {
+      "id": "8ad5de32100c4a1ab7771e8fea399065",
+      "name": "Пол",
+      "kind": "static_body",
+      "parent": null,
+      "transform": {
+        "x": 480,
+        "y": 600,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "6bc4f7162f124ae7813f6ed72295dc59": {
+      "id": "6bc4f7162f124ae7813f6ed72295dc59",
+      "name": "Пол — форма",
+      "kind": "rect_shape",
+      "parent": "8ad5de32100c4a1ab7771e8fea399065",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 940,
+      "height": 40,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "cf9a425df8294651bf2f9d65dce070ec": {
+      "id": "cf9a425df8294651bf2f9d65dce070ec",
+      "name": "m=1, e=0.8, μ=0.2",
+      "kind": "dynamic_body",
+      "parent": null,
+      "transform": {
+        "x": 150,
+        "y": 160,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        400
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.2,
+      "restitution": 0.8,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "20e6b4650e7b47f4a5cf0fae0fcded79": {
+      "id": "20e6b4650e7b47f4a5cf0fae0fcded79",
+      "name": "m=1, e=0.8, μ=0.2 — форма",
+      "kind": "circle_shape",
+      "parent": "cf9a425df8294651bf2f9d65dce070ec",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 45,
+      "height": 30,
+      "radius": 22,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "2c237cebfac5449db417c81ac2034e5a": {
+      "id": "2c237cebfac5449db417c81ac2034e5a",
+      "name": "m=5, e=0, μ=1",
+      "kind": "dynamic_body",
+      "parent": null,
+      "transform": {
+        "x": 340,
+        "y": 160,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 5,
+      "gravity": [
+        0,
+        400
+      ],
+      "velocity": [
+        15,
+        0
+      ],
+      "angular_velocity": 40,
+      "friction": 1,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "2ea2a12a000d4cec8fbbaaee4dab9884": {
+      "id": "2ea2a12a000d4cec8fbbaaee4dab9884",
+      "name": "m=5, e=0, μ=1 — форма",
+      "kind": "rect_shape",
+      "parent": "2c237cebfac5449db417c81ac2034e5a",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 45,
+      "height": 30,
+      "radius": 22,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "b36ec49d3682457896203ac96ff5fe75": {
+      "id": "b36ec49d3682457896203ac96ff5fe75",
+      "name": "m=1, e=0.4, μ=0.5",
+      "kind": "dynamic_body",
+      "parent": null,
+      "transform": {
+        "x": 520,
+        "y": 160,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        400
+      ],
+      "velocity": [
+        15,
+        0
+      ],
+      "angular_velocity": 40,
+      "friction": 0.5,
+      "restitution": 0.4,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "7ceaaf49c8dd43258efa6a76d837ae77": {
+      "id": "7ceaaf49c8dd43258efa6a76d837ae77",
+      "name": "m=1, e=0.4, μ=0.5 — форма",
+      "kind": "rect_shape",
+      "parent": "b36ec49d3682457896203ac96ff5fe75",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 45,
+      "height": 30,
+      "radius": 22,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "7edc9257a26d44fcbb1b34bc93251e5b": {
+      "id": "7edc9257a26d44fcbb1b34bc93251e5b",
+      "name": "Вогнутое тело — единая масса",
+      "kind": "dynamic_body",
+      "parent": null,
+      "transform": {
+        "x": 720,
+        "y": 120,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        400
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 15,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "9c1900d00f4341f0a2c006b20ea07d74": {
+      "id": "9c1900d00f4341f0a2c006b20ea07d74",
+      "name": "Вогнутое тело — единая масса — форма",
+      "kind": "polygon_shape",
+      "parent": "7edc9257a26d44fcbb1b34bc93251e5b",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -25,
+          -25
+        ],
+        [
+          25,
+          -25
+        ],
+        [
+          25,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          25
+        ],
+        [
+          -25,
+          25
+        ]
+      ]
+    }
+  },
+  "graphs": {},
+  "variables": {},
+  "format_version": 1
+}

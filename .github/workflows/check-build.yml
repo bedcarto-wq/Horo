@@ -1,7 +1,7 @@
 name: Check and build Horo
 on:
   push:
-    branches: [main, version/0.1, version/0.2.0, version/0.3.0]
+    branches: [main, version/0.1, version/0.2.0, version/0.3.0, version/0.4.0]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -58,19 +58,19 @@ jobs:
           path: windows-build.log
       - uses: actions/upload-artifact@v4
         with:
-          name: Horo-0.3.0-Windows-x64
-          path: dist/Horo-0.3.0-Windows-x64.zip
+          name: Horo-0.4.0-Windows-x64
+          path: dist/Horo-0.4.0-Windows-x64.zip
       - name: Publish preview release (not on PRs)
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/version/0.3.0'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/version/0.4.0'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "v0.3.0-preview"
+          $tag = "v0.4.0-preview"
           gh release view $tag --repo $env:GITHUB_REPOSITORY
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --prerelease --title "Horo 0.3.0 — preview" --notes "Windows x64 editor. Unzip the entire folder. BUILD.txt identifies the exact source commit. Source tests are automated; interactive acceptance on Windows without Python is still required."
+            gh release create $tag --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --prerelease --title "Horo 0.4.0 — preview" --notes "Windows x64 editor. Unzip the entire folder. BUILD.txt identifies the exact source commit. Source tests are automated; interactive acceptance on Windows without Python is still required."
             if ($LASTEXITCODE -ne 0) { throw "Не удалось создать Release" }
           }
-          gh release upload $tag dist/Horo-0.3.0-Windows-x64.zip --repo $env:GITHUB_REPOSITORY --clobber
+          gh release upload $tag dist/Horo-0.4.0-Windows-x64.zip --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw "Не удалось загрузить Windows ZIP" }

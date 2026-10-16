@@ -1,0 +1,273 @@
+{
+  "name": "Импульс в мировой точке: Space",
+  "width": 960,
+  "height": 640,
+  "nodes": {
+    "8baa6a184b6e4e1ba1d21a5a404c2a8a": {
+      "id": "8baa6a184b6e4e1ba1d21a5a404c2a8a",
+      "name": "Составное тело",
+      "kind": "dynamic_body",
+      "parent": null,
+      "transform": {
+        "x": 460,
+        "y": 280,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": "ae2f62bdab6941578feac632dd529674",
+      "width": 64,
+      "height": 64,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "fadc2141632740db90f25e080684d8b1": {
+      "id": "fadc2141632740db90f25e080684d8b1",
+      "name": "Составное тело — форма",
+      "kind": "rect_shape",
+      "parent": "8baa6a184b6e4e1ba1d21a5a404c2a8a",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 80,
+      "height": 30,
+      "radius": 32,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    },
+    "b175467b8bf54c3489ddf7791440c733": {
+      "id": "b175467b8bf54c3489ddf7791440c733",
+      "name": "Вторая форма",
+      "kind": "circle_shape",
+      "parent": "8baa6a184b6e4e1ba1d21a5a404c2a8a",
+      "transform": {
+        "x": 50,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "rotation": 0
+      },
+      "image": null,
+      "graph": null,
+      "width": 64,
+      "height": 64,
+      "radius": 20,
+      "mass": 1,
+      "gravity": [
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "angular_velocity": 0,
+      "friction": 0.5,
+      "restitution": 0,
+      "up": [
+        0,
+        -1
+      ],
+      "one_way": false,
+      "one_way_normal": [
+        0,
+        -1
+      ],
+      "points": [
+        [
+          -32,
+          -32
+        ],
+        [
+          32,
+          -32
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          -32,
+          32
+        ]
+      ]
+    }
+  },
+  "graphs": {
+    "ae2f62bdab6941578feac632dd529674": {
+      "id": "ae2f62bdab6941578feac632dd529674",
+      "name": "Однократный импульс со смещением",
+      "kind": "behavior",
+      "nodes": {
+        "745693f862064c4f83899a9cddfc07e7": {
+          "id": "745693f862064c4f83899a9cddfc07e7",
+          "kind": "key",
+          "name": "",
+          "x": 0,
+          "y": 0,
+          "params": {
+            "key": "Space"
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "09c16ed174c749bda38cfa4ba2c161c0": {
+          "id": "09c16ed174c749bda38cfa4ba2c161c0",
+          "kind": "impulse",
+          "name": "",
+          "x": 800,
+          "y": 0,
+          "params": {},
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "ea121106f366416cbd947ffa08a9bdb9": {
+          "id": "ea121106f366416cbd947ffa08a9bdb9",
+          "kind": "vector",
+          "name": "",
+          "x": 0,
+          "y": 300,
+          "params": {
+            "x": 0,
+            "y": -30
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        },
+        "6356b7bbd64241ad8ac9f5644419f547": {
+          "id": "6356b7bbd64241ad8ac9f5644419f547",
+          "kind": "vector",
+          "name": "",
+          "x": 400,
+          "y": 300,
+          "params": {
+            "x": 410,
+            "y": 280
+          },
+          "region": null,
+          "expanded": true,
+          "outputs": []
+        }
+      },
+      "edges": [
+        {
+          "source": "745693f862064c4f83899a9cddfc07e7",
+          "output": "next",
+          "target": "09c16ed174c749bda38cfa4ba2c161c0",
+          "input": "in",
+          "id": "03fadfb341bf44ce824dce15e679e35b"
+        },
+        {
+          "source": "745693f862064c4f83899a9cddfc07e7",
+          "output": "object",
+          "target": "09c16ed174c749bda38cfa4ba2c161c0",
+          "input": "object",
+          "id": "5f40bd80d14a40999f7a9228e216aeb3"
+        },
+        {
+          "source": "ea121106f366416cbd947ffa08a9bdb9",
+          "output": "value",
+          "target": "09c16ed174c749bda38cfa4ba2c161c0",
+          "input": "value",
+          "id": "c2315578fbbb4b3aaec2fc4123bd2d09"
+        },
+        {
+          "source": "6356b7bbd64241ad8ac9f5644419f547",
+          "output": "value",
+          "target": "09c16ed174c749bda38cfa4ba2c161c0",
+          "input": "point",
+          "id": "a243395786aa4bf680686a2feaeff1a2"
+        }
+      ],
+      "parameters": [],
+      "results": []
+    }
+  },
+  "variables": {},
+  "format_version": 1
+}

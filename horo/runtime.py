@@ -7,6 +7,7 @@ import itertools
 import time
 from collections import deque
 from .scheduling import Scope, Task
+from .ports import PHYSICS_READ, PHYSICS_ACTION
 from .physics import PhysicsWorld, PhysicsError, BODIES
 from .geometry import unit
 from .ports import STARTS, LOOPS
@@ -121,7 +122,19 @@ class Runtime:
         if node.id not in cache:
             self.tick(frame, node)
             kind = node.kind
-            if kind == 'held':
+            if kind in PHYSICS_READ:
+                oid=self.input(frame,node,'object',cache)
+                try:
+                    if self.physics is None:raise PhysicsError('В сцене нет физических тел')
+                    value=self.physics.dynamics.read(kind,oid)
+                except PhysicsError as exc:self.fail(frame,node,str(exc))
+                values={'value':value}
+            elif kind in ('dot','vector_add','vector_sub'):
+                a=self.check(frame,node,'vector',self.input(frame,node,'a',cache))
+                b=self.check(frame,node,'vector',self.input(frame,node,'b',cache))
+                value=sum(x*y for x,y in zip(a,b)) if kind=='dot' else [a[i]+b[i] if kind=='vector_add' else a[i]-b[i] for i in (0,1)]
+                values={'value':self.check(frame,node,'number' if kind=='dot' else 'vector',value)}
+            elif kind == 'held':
                 values = {'value': node.params.get('key','Space') in self.held}
             elif kind == 'direction':
                 keys = {k: node.params.get(k,d) in self.held for k,d in [('left','A'),('right','D'),('up','W'),('down','S')]}
@@ -339,7 +352,7 @@ class Runtime:
         self._dispatch('frame', delta=delta)
         self._drain()
         if self.running and self.physics:
-            contexts = dict(self.physics.commands)
+            contexts = {**{k:(None,v) for k,v in self.physics.dynamics.contexts.items()},**self.physics.commands}
             try:
                 self.contact_queue.extend(self.physics.update(delta))
             except PhysicsError as exc:
@@ -463,6 +476,16 @@ class Runtime:
             if not number(x) or not number(y):
                 self.fail(frame, node, 'Координаты вышли за допустимый числовой диапазон')
             transform.x, transform.y = x, y
+            if self.physics:self.physics.dynamics.teleported(oid)
+            self._next_task(task)
+        elif kind in PHYSICS_ACTION:
+            oid=self.input(frame,node,'object',cache)
+            value=self.check(frame,node,PHYSICS_ACTION[kind][1],self.input(frame,node,'value',cache))
+            point=self.input(frame,node,'point',cache,None) if kind=='impulse' else None
+            try:
+                if self.physics is None:raise PhysicsError('В сцене нет физических тел')
+                self.physics.dynamics.action(kind,oid,value,point,(frame,node))
+            except PhysicsError as exc:self.fail(frame,node,str(exc))
             self._next_task(task)
         elif kind == 'body_move':
             oid = self.input(frame,node,'object',cache)

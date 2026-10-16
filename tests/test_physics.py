@@ -140,12 +140,14 @@ def test_concave_interior_is_open_and_no_triangle_seams():
     for _ in range(20):w.command(a.id,[0,100]);w.update(.05)
     assert a.transform.y==pytest.approx(160,abs=1e-4)
 
-def test_compound_contact_transfers_without_false_end():
-    p=Project();a,_=body(p,x=0,y=-30,shape='circle_shape');wall,s=body(p,'static_body',x=10,y=-25,w=10,h=50)
+@pytest.mark.parametrize('shape',['circle_shape','rect_shape','polygon_shape'])
+def test_compound_contact_transfers_without_false_end(shape):
+    p=Project();a,sa=body(p,x=0,y=-30,shape=shape,points=[[-5,-5],[5,-5],[5,5],[-5,5]]);wall,s=body(p,'static_body',x=10,y=-25,w=10,h=50)
     s2=SceneNode(kind='rect_shape',parent=wall.id,width=10,height=50,transform=Transform(y=50));p.nodes[s2.id]=s2
     w=PhysicsWorld(p);events=w.update(.01);assert len(events)==1
     for _ in range(60):
         w.command(a.id,[0,20]);assert w.update(.05)==[]
+    assert a.transform.y==pytest.approx(30,abs=1e-4)
     w.command(a.id,[-100,0]);assert w.update(.05)[0][0]=='contact_end'
 
 def test_controlled_bodies_block_without_push():

@@ -180,4 +180,13 @@ def sweep(a,b,d):
             for x,y in edges(a.points):
                 h=point_edge(p,mul(d,-1),x,y)
                 if h:hits.append((h[0],mul(h[1],-1)))
+    # Vertex/edge endpoint coincidences can be a tangential pass, not entry.
+    # Confirm positive-area entry just beyond a polygon feature hit. The probe
+    # only classifies the exact candidate; it does not step the moving body.
+    # In particular this discards compound-wall seams and collinear grazing.
+    if a.points and b.points:
+        probe = 1e-4/max(length(d),EPS)
+        for hit in sorted(hits,key=lambda h:h[0]):
+            if overlap(a.translated(mul(d,hit[0]+probe)),b):return hit
+        return None
     return min(hits,key=lambda h:h[0]) if hits else None

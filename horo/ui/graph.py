@@ -4,10 +4,10 @@ from PySide6.QtGui import QColor, QPen, QBrush, QPainterPath, QPainter, QDrag
 from PySide6.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsItem,
     QGraphicsPathItem, QGraphicsProxyWidget, QWidget, QVBoxLayout, QHBoxLayout,
     QFormLayout, QLineEdit, QComboBox, QPushButton, QLabel, QMenu, QInputDialog,
-    QListWidget, QListWidgetItem, QDialog, QDialogButtonBox, QTreeWidget, QTreeWidgetItem)
+    QListWidget, QListWidgetItem, QDialog, QDialogButtonBox, QTreeWidget, QTreeWidgetItem, QCheckBox)
 from ..model import Edge, initial
-from ..ports import LABELS, CATEGORIES, ports, STARTS, LOOPS
-from ..validation import region_ancestors
+from ..ports import LABELS, CATEGORIES, ports, STARTS, LOOPS, DESCRIPTIONS, port_help
+from ..validation import region_ancestors, node_availability, validate_graph
 from .dialogs import typed_value, format_value
 
 EXEC_COLOR = QColor('#ff7d88')
@@ -18,7 +18,8 @@ class PortItem(QGraphicsItem):
         super().__init__(card)
         self.port, self.card, self.enabled = port, card, enabled
         self.setPos(0 if port.direction == 'in' else card.width, 50+index*25)
-        self.setZValue(3); self.setToolTip(f'{port.label} · {port.type} · {port.key}')
+        self.setZValue(3); self.setToolTip(port_help(card.view.project, card.view.graph, card.node, port) +
+            ('\nИсточник из внешней области; порт недоступен в этом представлении' if not enabled else ''))
 
     def boundingRect(self):
         return QRectF(-9, -9, 18, 18)
@@ -66,6 +67,7 @@ class CardItem(QGraphicsItem):
         super().__init__()
         self.node, self.view, self.boundary = node, view, boundary
         self.port_items = {}
+        self.issues = view.issues.get(node.id, [])
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, not boundary)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
@@ -88,7 +90,7 @@ class CardItem(QGraphicsItem):
                 self.height += widget.sizeHint().height()+12
                 if boundary:
                     widget.setEnabled(False)
-        self.setToolTip(f'{node.id}\n' + ('Источник из внешней области' if boundary else 'Перетащите заголовок; порты: выход → вход'))
+        self.setToolTip(f'{node.id}\n' + ('Источник из внешней области' if boundary else 'Перетащите заголовок; порты: выход → вход')+'\n'+'\n'.join(self.issues))
 
     def boundingRect(self):
         return QRectF(-10, 0, self.width+20, self.height)
@@ -99,7 +101,7 @@ class CardItem(QGraphicsItem):
         painter.drawRoundedRect(QRectF(0, 0, self.width, self.height), 7, 7)
         painter.fillRect(QRectF(1, 1, self.width-2, 30), QColor('#223a57'))
         painter.setPen(QColor('#eff5ff'))
-        title = self.node.name or LABELS.get(self.node.kind, self.node.kind)
+        title = ('⚠ ' if self.issues else '') + (self.node.name or LABELS.get(self.node.kind, self.node.kind))
         painter.drawText(QRectF(10, 4, self.width-48, 24), Qt.AlignmentFlag.AlignVCenter,
                          painter.fontMetrics().elidedText(title, Qt.TextElideMode.ElideRight, self.width-48))
         if not self.boundary:
@@ -109,7 +111,8 @@ class CardItem(QGraphicsItem):
             painter.setPen(QColor('#d4e4f7') if portitem.enabled else QColor('#657992'))
             x = 12 if direction == 'in' else self.width/2
             align = Qt.AlignmentFlag.AlignLeft if direction == 'in' else Qt.AlignmentFlag.AlignRight
-            text = painter.fontMetrics().elidedText(portitem.port.label, Qt.TextElideMode.ElideRight, 140)
+            connected = direction == 'in' and any(e.target == self.node.id and e.input == key for e in self.view.graph.edges)
+            text = painter.fontMetrics().elidedText(portitem.port.label+(' ← линия' if connected else ''), Qt.TextElideMode.ElideRight, 140)
             painter.drawText(QRectF(x, portitem.y()-10, self.width/2-12, 20), align | Qt.AlignmentFlag.AlignVCenter, text)
 
     def update_param(self, key, value):
@@ -122,6 +125,8 @@ class CardItem(QGraphicsItem):
         def text_field(label, key, kind, default):
             edit = QLineEdit(format_value(node.params.get(key, default), kind))
             edit.installEventFilter(self.view.window())
+            if any(e.target==node.id and e.input==key for e in self.view.graph.edges):
+                edit.setToolTip('Сейчас значение приходит по линии; это поле применяется только без подключения')
             def finish():
                 try:
                     value = typed_value(edit.text(), kind)
@@ -186,6 +191,7 @@ class CardItem(QGraphicsItem):
                 for text, action, enabled in [('↑', 'up', index > 0), ('↓', 'down', index < len(node.outputs)-1),
                                               ('×', 'remove', len(node.outputs) > 2)]:
                     button = QPushButton(text); button.setEnabled(enabled)
+                    button.setToolTip('Переместить выход' if action in ('up','down') and enabled else 'Удалить выход' if enabled else 'Выход уже на границе списка' if action in ('up','down') else 'Нужно минимум два выхода')
                     button.clicked.connect(lambda checked=False, a=action, key=output_id:
                                            self.view.output_requested.emit(node.id, a, key))
                     layout.addWidget(button)
@@ -193,8 +199,16 @@ class CardItem(QGraphicsItem):
             button = QPushButton('+ Выход')
             button.clicked.connect(lambda: self.view.output_requested.emit(node.id, 'add', None))
             form.addRow(button)
-        if form.rowCount() == 0:
-            return None
+        description = QPushButton('Описание ▾' if node.id in self.view.description_ids else 'Описание ▸')
+        description.clicked.connect(lambda: self.view.toggle_description(node.id))
+        form.addRow(description)
+        if node.id in self.view.description_ids:
+            help_text = QLabel(DESCRIPTIONS.get(node.kind,'Неизвестный вид узла: проверьте ресурс графа')); help_text.setWordWrap(True)
+            form.addRow(help_text)
+        if self.issues:
+            problem = QLabel('⚠ ' + '\n'.join(self.issues)); problem.setWordWrap(True)
+            problem.setToolTip('Это диагностика текущей конфигурации, не обязательно запрет добавления. Неполный граф можно сохранить.')
+            form.addRow(problem)
         return widget
 
     def itemChange(self, change, value):
@@ -228,45 +242,94 @@ class CardItem(QGraphicsItem):
                 self.view.rename_requested.emit(self.node.id, text)
 
 class NodeSearch(QDialog):
-    def __init__(self, allowed, parent):
-        super().__init__(parent); self.setWindowTitle('Добавить узел'); self.resize(340, 440)
-        layout = QVBoxLayout(self); self.search = QLineEdit(); self.search.setPlaceholderText('Поиск узла…')
-        layout.addWidget(self.search); self.list = QListWidget(); layout.addWidget(self.list)
-        self.allowed = allowed; self.kind = None
-        self.search.textChanged.connect(self.populate); self.list.itemDoubleClicked.connect(self.finish)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        buttons.accepted.connect(self.finish); buttons.rejected.connect(self.reject); layout.addWidget(buttons)
-        self.populate('')
+    def __init__(self, graph, region, parent):
+        super().__init__(parent); self.setWindowTitle('Добавить узел'); self.resize(460, 500)
+        self.graph, self.region = graph, region
+        layout=QVBoxLayout(self); self.search=QLineEdit();self.search.setPlaceholderText('Поиск узла…');layout.addWidget(self.search)
+        self.show_unavailable=QCheckBox('Показать недоступные');self.show_unavailable.setChecked(parent.show_unavailable)
+        layout.addWidget(self.show_unavailable);self.list=QListWidget();layout.addWidget(self.list)
+        self.reason=QLabel('');self.reason.setWordWrap(True);layout.addWidget(self.reason)
+        self.kind=None
+        self.search.textChanged.connect(self.populate);self.show_unavailable.toggled.connect(self.populate)
+        self.show_unavailable.toggled.connect(parent.availability_mode.emit)
+        self.list.itemDoubleClicked.connect(self.finish)
+        self.list.currentItemChanged.connect(self.explain)
+        buttons=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel)
+        self.ok_button=buttons.button(QDialogButtonBox.StandardButton.Ok)
+        buttons.accepted.connect(self.finish);buttons.rejected.connect(self.reject);layout.addWidget(buttons)
+        self.populate()
 
-    def populate(self, text):
-        self.list.clear()
-        for kind in self.allowed:
-            if text.lower() in LABELS[kind].lower():
-                item = QListWidgetItem(LABELS[kind]); item.setData(Qt.ItemDataRole.UserRole, kind); self.list.addItem(item)
-        if self.list.count():
-            self.list.setCurrentRow(0)
+    def populate(self,*_):
+        self.list.clear();text=self.search.text().casefold()
+        for kind,label in LABELS.items():
+            reason=node_availability(self.graph,kind,self.region)
+            if text not in label.casefold() or (reason and not self.show_unavailable.isChecked()):continue
+            item=QListWidgetItem(label+(' — '+reason if reason else ''));item.setData(Qt.ItemDataRole.UserRole,kind)
+            item.setToolTip(reason or DESCRIPTIONS[kind])
+            if reason:item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled)
+            self.list.addItem(item)
+        self.list.setCurrentRow(next((i for i in range(self.list.count()) if self.list.item(i).flags() & Qt.ItemFlag.ItemIsEnabled),-1))
+        self.explain()
 
-    def finish(self, *_):
-        if self.list.currentItem():
-            self.kind = self.list.currentItem().data(Qt.ItemDataRole.UserRole); self.accept()
+    def explain(self,*_):
+        item=self.list.currentItem();kind=item.data(Qt.ItemDataRole.UserRole) if item else None
+        reason=node_availability(self.graph,kind,self.region) if kind else 'Нет доступного узла для выбранного поиска'
+        self.ok_button.setEnabled(bool(item) and not reason)
+        self.reason.setText(reason or DESCRIPTIONS[kind])
+
+    def finish(self,*_):
+        item=self.list.currentItem()
+        if item:
+            kind=item.data(Qt.ItemDataRole.UserRole)
+            reason=node_availability(self.graph,kind,self.region)
+            if reason:self.reason.setText(reason);return
+            self.kind=kind;self.accept()
+
 
 class Catalog(QTreeWidget):
+    availability_mode=Signal(bool)
     def __init__(self):
-        super().__init__(); self.setHeaderHidden(True); self.setDragEnabled(True)
-        for category, kinds in CATEGORIES.items():
-            parent = QTreeWidgetItem([category]); self.addTopLevelItem(parent)
+        super().__init__();self.setHeaderHidden(True);self.setDragEnabled(True)
+        self.graph=None;self.region=None
+        self.reason=QLabel('');self.reason.setWordWrap(True);self.reason.hide()
+        self.setMouseTracking(True);self.itemEntered.connect(self.explain_item)
+        self.currentItemChanged.connect(self.explain_item)
+        self.search=QLineEdit();self.search.setPlaceholderText('Найти блок…')
+        self.show_unavailable=QCheckBox('Показать недоступные')
+        self.search.textChanged.connect(self.populate);self.show_unavailable.toggled.connect(self.populate)
+        self.show_unavailable.toggled.connect(self.availability_mode.emit)
+        self.populate()
+
+    def explain_item(self,item,*_):
+        kind=item.data(0,Qt.ItemDataRole.UserRole) if item else None
+        reason=node_availability(self.graph,kind,self.region) if kind else None
+        self.reason.setText(reason or '');self.reason.setVisible(bool(reason))
+
+    def set_context(self,graph,region):
+        self.graph,self.region=graph,region;self.populate()
+
+    def populate(self,*_):
+        self.clear();self.reason.hide();text=self.search.text().casefold()
+        for category,kinds in CATEGORIES.items():
+            parent=QTreeWidgetItem([category])
             for kind in kinds:
-                item = QTreeWidgetItem([LABELS[kind]]); item.setData(0, Qt.ItemDataRole.UserRole, kind); parent.addChild(item)
+                reason=node_availability(self.graph,kind,self.region)
+                if text not in LABELS[kind].casefold() or (reason and not self.show_unavailable.isChecked()):continue
+                item=QTreeWidgetItem([LABELS[kind]+(' — '+reason if reason else '')]);item.setData(0,Qt.ItemDataRole.UserRole,kind)
+                item.setToolTip(0,reason or DESCRIPTIONS[kind])
+                if reason:item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled & ~Qt.ItemFlag.ItemIsDragEnabled)
+                parent.addChild(item)
+            if parent.childCount():self.addTopLevelItem(parent)
         self.expandAll()
 
-    def startDrag(self, supportedActions):
-        item = self.currentItem()
-        kind = item.data(0, Qt.ItemDataRole.UserRole) if item else None
-        if kind:
-            mime = QMimeData(); mime.setData('application/x-horo-node', kind.encode())
-            drag = QDrag(self); drag.setMimeData(mime); drag.exec(Qt.DropAction.CopyAction)
+    def startDrag(self,supportedActions):
+        item=self.currentItem();kind=item.data(0,Qt.ItemDataRole.UserRole) if item else None
+        if kind and not node_availability(self.graph,kind,self.region):
+            mime=QMimeData();mime.setData('application/x-horo-node',kind.encode())
+            drag=QDrag(self);drag.setMimeData(mime);drag.exec(Qt.DropAction.CopyAction)
 
 class GraphCanvas(QGraphicsView):
+    availability_mode = Signal(bool)
     add_requested = Signal(str, float, float)
     edge_requested = Signal(object)
     param_requested = Signal(str, str, object)
@@ -284,6 +347,7 @@ class GraphCanvas(QGraphicsView):
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.setAcceptDrops(True); self.setBackgroundBrush(QColor('#0c1420'))
         self.project = None; self.graph = None; self.region = None
+        self.show_unavailable = False; self.description_ids = set(); self.issues = {}
         self.card_items = {}; self.edge_items = []; self.pending = None; self.preview = None; self.panning = False
 
     def build(self, project, graph, region=None):
@@ -291,6 +355,9 @@ class GraphCanvas(QGraphicsView):
         self.pending = None; self.preview = None
         self.project, self.graph, self.region = project, graph, region
         self.card_items = {}; self.edge_items = []; self.scene().clear()
+        self.issues = {}
+        for d in validate_graph(project, graph):
+            if d.node_id:self.issues.setdefault(d.node_id, []).append(d.message)
         external_index = 0
         for node in graph.nodes.values():
             boundary = node.region != region
@@ -318,19 +385,13 @@ class GraphCanvas(QGraphicsView):
                 self.scene().addItem(item); self.edge_items.append(item)
         self.scene().setSceneRect(self.scene().itemsBoundingRect().adjusted(-600, -600, 1200, 1200))
 
+    def toggle_description(self, key):
+        if key in self.description_ids:self.description_ids.remove(key)
+        else:self.description_ids.add(key)
+        QTimer.singleShot(0, lambda:self.build(self.project,self.graph,self.region) if self.graph else None)
+
     def allowed(self):
-        if not self.graph:
-            return []
-        kinds = list(LABELS)
-        if self.graph.kind == 'behavior':
-            kinds = [k for k in kinds if k not in ('entry', 'return')]
-        else:
-            kinds = [k for k in kinds if k not in STARTS]
-        if self.region is not None:
-            kinds = [k for k in kinds if k not in STARTS and k != 'entry']
-        else:
-            kinds = [k for k in kinds if k not in ('break', 'continue')]
-        return kinds
+        return [kind for kind in LABELS if not node_availability(self.graph,kind,self.region)]
 
     def port_clicked(self, port):
         if self.pending is None:
@@ -392,7 +453,7 @@ class GraphCanvas(QGraphicsView):
         if item:
             super().contextMenuEvent(event); return
         self.cancel_connection()
-        dialog = NodeSearch(self.allowed(), self)
+        dialog = NodeSearch(self.graph, self.region, self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             pos = self.mapToScene(event.pos()); self.add_requested.emit(dialog.kind, pos.x(), pos.y())
 
@@ -418,7 +479,7 @@ class GraphCanvas(QGraphicsView):
             pos = self.mapToScene(event.position().toPoint()); self.add_requested.emit(kind, pos.x(), pos.y())
             event.acceptProposedAction()
         else:
-            self.message.emit('Этот узел недоступен в текущем виде/области графа')
+            self.message.emit(node_availability(self.graph,kind,self.region) or 'Не удалось добавить узел')
 
     def focus_node(self, node_id):
         self.scene().clearSelection()
@@ -431,21 +492,39 @@ class GraphCanvas(QGraphicsView):
 class GraphEditor(QWidget):
     def __init__(self):
         super().__init__(); layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0)
-        tools = QHBoxLayout(); self.breadcrumb = QLabel('Выберите граф в ресурсах')
+        tools = QHBoxLayout(); self.breadcrumb = QLabel('Выберите граф в ресурсах'); self.breadcrumb.setWordWrap(True)
         self.back = QPushButton('← Внешний граф'); self.back.setVisible(False)
         self.fit = QPushButton('Показать всё')
         tools.addWidget(self.back); tools.addWidget(self.breadcrumb); tools.addStretch(); tools.addWidget(self.fit)
-        layout.addLayout(tools); self.canvas = GraphCanvas(); layout.addWidget(self.canvas)
+        layout.addLayout(tools)
+        self.context = QLabel(); self.context.setWordWrap(True); layout.addWidget(self.context)
+        self.signature = QLabel(); self.signature.setWordWrap(True); layout.addWidget(self.signature)
+        self.feedback = QLabel(); self.feedback.setWordWrap(True); self.feedback.hide(); layout.addWidget(self.feedback)
+        self.canvas = GraphCanvas(); layout.addWidget(self.canvas)
+        self.canvas.message.connect(self.explain)
         self.back.clicked.connect(self.go_back)
         self.fit.clicked.connect(lambda: self.canvas.fitInView(self.canvas.scene().itemsBoundingRect().adjusted(-30, -30, 30, 30), Qt.AspectRatioMode.KeepAspectRatio))
+
+    def explain(self, text):
+        self.feedback.setText('⚠ '+text); self.feedback.show()
 
     def go_back(self):
         owner = self.canvas.graph.nodes.get(self.canvas.region) if self.canvas.graph else None
         self.canvas.region_requested.emit(owner.region if owner else None)
 
-    def build(self, project, graph, region):
+    def build(self, project, graph, region, object_id=None):
+        self.feedback.hide()
         self.back.setVisible(region is not None)
         path = [graph.name] + [graph.nodes[key].name or LABELS[graph.nodes[key].kind]
                                for key in reversed(region_ancestors(graph, region))]
         self.breadcrumb.setText(' → '.join(path) + ' · ПКМ: добавить; Delete: удалить')
+        kind = 'Поведение' if graph.kind == 'behavior' else 'Функция'
+        obj = project.nodes.get(object_id)
+        context = f'Сцена: {project.name} · Объект: {obj.name} [{obj.id[:8]}]' if obj and obj.graph == graph.id else f'Сцена: {project.name} · Ресурс графа'
+        self.context.setText(context + f' · {kind}: {graph.name}\nОбщий ресурс: правки действуют для всех использующих его объектов. Переменные объекта у экземпляров раздельны.')
+        from ..model import TYPE_LABELS
+        def listing(values):return ', '.join(f'{v.name}: {TYPE_LABELS[v.type]}' for v in values) or 'нет'
+        self.signature.setVisible(graph.kind == 'function')
+        self.signature.setText('Параметры → Вход функции: ' + listing(graph.parameters) + '\nРезультаты → Вернуть результат: ' + listing(graph.results))
+        self.signature.setToolTip('Редактирование сигнатуры — панель «Переменные и сигнатура функции»; порты находятся на Вход функции и Вернуть результат.')
         self.canvas.build(project, graph, region)

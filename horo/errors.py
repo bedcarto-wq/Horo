@@ -10,7 +10,10 @@ class Diagnostic:
     received: str | None = None
     shape_id: str | None = None
 
-    def describe(self, project):
+    severity: str = "error"
+    invocation: str | None = None  # runtime session/frame identity, never serialized
+
+    def describe(self, project, include_values=True):
         g = project.graphs.get(self.graph_id)
         n = g.nodes.get(self.node_id) if g else None
         o = project.nodes.get(self.object_id)
@@ -26,7 +29,9 @@ class Diagnostic:
             shape = project.nodes.get(self.shape_id)
             lines.append(f'Форма: {shape.name if shape else "отсутствует"} [{self.shape_id}]')
         if self.expected is not None:
-            lines.append(f'Ожидалось: {self.expected}; получено: {self.received}')
+            lines.append(f'Ожидалось: {self.expected}; получено: ' + (str(self.received) if include_values else 'значение скрыто'))
+        if self.invocation:
+            lines.append(f'Контекст вызова: {self.invocation}')
         return '\n'.join(lines)
 
 class GraphError(Exception):

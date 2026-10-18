@@ -11,7 +11,7 @@ from .ports import PHYSICS_READ, PHYSICS_ACTION
 from .physics import PhysicsWorld, PhysicsError, BODIES
 from .geometry import unit
 from .ports import STARTS, LOOPS
-from .model import initial, valid_value, number
+from .model import initial, valid_value, number, uid
 from .errors import Diagnostic, GraphError
 from .validation import validate_project
 
@@ -28,6 +28,7 @@ class Frame:
     calls: dict = field(default_factory=dict)
     event: dict = field(default_factory=dict)
     depth: int = 0
+    diagnostic_id: str | None = None
 
 class Control(Exception):
     def __init__(self, kind, values=None):
@@ -49,6 +50,7 @@ class Runtime:
         self.epoch = 0; self.started = False
         self.task_limit, self.call_limit = task_limit, call_limit
         self.tasks = {}; self.scopes = {}; self.ready = deque(); self.sleepers = []
+        self._diagnostic_session = uid(); self._diagnostic_ids = itertools.count(1)
         self._ids = itertools.count(1); self._wake_order = itertools.count(1)
         self.step_limit = step_limit
         self.steps = 0
@@ -58,7 +60,7 @@ class Runtime:
             try:
                 self.physics = PhysicsWorld(self.project)
             except PhysicsError as exc:
-                raise GraphError(Diagnostic(str(exc), object_id=exc.body, shape_id=exc.shape)) from exc
+                raise GraphError(Diagnostic(str(exc), object_id=exc.body, shape_id=exc.shape,invocation=self._diagnostic_session)) from exc
         self.game = {v.id: copy.deepcopy(v.value) for v in project.variables.values() if v.scope == 'game'}
         self.objects = {oid: {v.id: copy.deepcopy(v.value) for v in project.variables.values()
                               if v.scope == 'object'} for oid in project.nodes}
@@ -74,7 +76,7 @@ class Runtime:
     def fail(self, frame, node, message, expected=None, received=None):
         self.stop()
         raise GraphError(Diagnostic(message, frame.graph.id, node.id if node else None,
-                                    frame.object_id, expected, received))
+                                    frame.object_id, expected, received, invocation=frame.diagnostic_id))
 
     def tick(self, frame, node):
         self.steps += 1
@@ -84,7 +86,8 @@ class Runtime:
     def frame(self, graph, object_id, arguments=None):
         temporary = {v.id: copy.deepcopy(v.value) for v in self.project.variables.values()
                      if v.scope == 'run' and v.owner == graph.id}
-        return Frame(graph, object_id, arguments or {}, temporary)
+        return Frame(graph, object_id, arguments or {}, temporary,
+                     diagnostic_id=f'{self._diagnostic_session}/{next(self._diagnostic_ids)}')
 
     def next(self, frame, node, output='next'):
         edge = next((e for e in frame.graph.edges if e.source == node.id and e.output == output), None)
@@ -285,7 +288,7 @@ class Runtime:
         value = self.clock()
         if not number(value) or value < self.now:
             self.stop()
-            raise GraphError(Diagnostic('Источник времени должен быть конечным и монотонным'))
+            raise GraphError(Diagnostic('Источник времени должен быть конечным и монотонным',invocation=self._diagnostic_session))
         self.now = value
 
     def _dispatch(self, kind, key=None, delta=0):
@@ -360,7 +363,8 @@ class Runtime:
                 self.stop()
                 frame,node = context if context else (None,None)
                 raise GraphError(Diagnostic(str(exc), frame.graph.id if frame else None,
-                    node.id if node else None, exc.body, shape_id=exc.shape)) from exc
+                    node.id if node else None, exc.body, shape_id=exc.shape,
+                    invocation=frame.diagnostic_id if frame else self._diagnostic_session)) from exc
 
     def _dispatch_contact(self,kind,pair):
         for oid,other in (pair,tuple(reversed(pair))):

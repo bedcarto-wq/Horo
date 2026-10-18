@@ -73,8 +73,9 @@ class GameWindow(QWidget):
             self.runtime.stop(); self.timer.stop(); self.held.clear()
             self.failed.emit(exc.diagnostic)
             self.setWindowTitle('Horo — Ошибка: игра остановлена')
-        except Exception:
-            logging.exception('Unexpected runtime error')
+        except Exception as exc:
+            # Stack locations only: arbitrary exception messages can contain input values.
+            logging.error('Unexpected runtime error\n%s', ''.join(traceback.format_tb(exc.__traceback__)))
             self.runtime.stop(); self.timer.stop(); self.held.clear()
             self.failed.emit(Diagnostic('Внутренняя ошибка выполнения. Подробности в локальном логе.'))
             self.setWindowTitle('Horo — Внутренняя ошибка: игра остановлена')

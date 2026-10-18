@@ -1,6 +1,7 @@
 """Editor controller. Model snapshots are the authority; widgets are projections."""
 from __future__ import annotations
 import copy
+from dataclasses import replace
 import logging
 from pathlib import Path
 from PySide6.QtCore import Qt, QTimer, QMimeData, QEvent
@@ -13,7 +14,7 @@ from ..model import Project, Graph, SceneNode, Variable, TYPE_LABELS, uid
 from ..history import History
 from ..physics import SHAPES, BODIES
 from ..storage import save_project, load_project, import_asset, asset_path, PROJECT_FILE
-from ..validation import connect, validate_project, region_ancestors
+from ..validation import connect, validate_project, region_ancestors, node_availability, connection_error
 from ..errors import Diagnostic, GraphError
 from ..runtime import Runtime
 from ..ports import LOOPS
@@ -21,6 +22,8 @@ from .scene import SceneEditor
 from .graph import GraphEditor, Catalog
 from .dialogs import ProjectDialog, VariableDialog, ParameterDialog
 from .game import GameWindow
+from .console import ConsolePanel
+from .. import __version__
 
 THEME = '''
 QWidget { background: #101925; color: #e5eefb; font-family: "Segoe UI", "Noto Sans", sans-serif; font-size: 12px; }
@@ -33,6 +36,7 @@ QPushButton:hover { background: #35597f; }
 QPushButton:disabled { color: #74859a; }
 QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox { background: #0d1520; border: 1px solid #3b526e; padding: 4px; }
 QTreeWidget, QListWidget, QScrollArea { background: #121f30; border: 1px solid #243951; }
+QTreeWidget::item:disabled, QListWidget::item:disabled { color: #74859a; }
 QTreeWidget::item:selected, QListWidget::item:selected { background: #2d537e; color: white; }
 QTabBar::tab { background: #1c2f45; padding: 7px 12px; }
 QTabBar::tab:selected { background: #2c4f74; }
@@ -56,6 +60,7 @@ class MainWindow(QMainWindow):
         self.resize(1420, 900); QApplication.instance().setStyleSheet(THEME)
         self.project = Project(); self.folder = None; self.saved = self.project.to_dict()
         self.history = History(); self.selected = None; self.graph_id = None; self.region = None
+        self.graph_object_id = None; self.last_run_error = False
         self.game = None; self.loading = False; self.resource_warnings = set(); self.pending_edits = []
         log_dir = Path.home()/'.horo'; log_dir.mkdir(exist_ok=True)
         logging.basicConfig(filename=log_dir/'horo.log', level=logging.ERROR, encoding='utf-8')
@@ -82,7 +87,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(add); layout.addWidget(self.tree)
         self.dock('Дерево сцены', 'scene-tree', tree_panel, Qt.DockWidgetArea.LeftDockWidgetArea)
         self.props = QWidget(); self.props_form = QFormLayout(self.props)
-        scroll = QScrollArea(); scroll.setWidgetResizable(True); scroll.setMinimumWidth(260); scroll.setWidget(self.props)
+        props_body = QWidget(); props_layout = QVBoxLayout(props_body); props_layout.setContentsMargins(0,0,0,0)
+        self.props_heading = QLabel(); props_layout.addWidget(self.props_heading); props_layout.addWidget(self.props)
+        scroll = QScrollArea(); scroll.setWidgetResizable(True); scroll.setMinimumWidth(260); scroll.setWidget(props_body)
         self.dock('Свойства объекта', 'properties', scroll, Qt.DockWidgetArea.RightDockWidgetArea)
         self.resources = ResourceTree(); resource_panel = QWidget(); layout = QVBoxLayout(resource_panel)
         tools = QHBoxLayout()
@@ -91,10 +98,13 @@ class MainWindow(QMainWindow):
             button = QPushButton(label); button.clicked.connect(callback); tools.addWidget(button)
         layout.addLayout(tools); layout.addWidget(self.resources)
         resources_dock = self.dock('Ресурсы', 'resources', resource_panel, Qt.DockWidgetArea.BottomDockWidgetArea)
-        self.console = QListWidget(); self.console.setWordWrap(True)
-        console_dock = self.dock('Консоль — нажмите сообщение для перехода', 'console', self.console, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.console_panel = ConsolePanel(); self.console = self.console_panel.list
+        console_dock = self.dock('Консоль — нажмите сообщение для перехода', 'console', self.console_panel, Qt.DockWidgetArea.BottomDockWidgetArea)
         self.tabifyDockWidget(resources_dock, console_dock); resources_dock.raise_()
-        self.catalog = Catalog(); self.dock('Категории узлов — перетащите в граф', 'catalog', self.catalog, Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.catalog = Catalog(); catalog_panel = QWidget(); catalog_layout = QVBoxLayout(catalog_panel)
+        catalog_layout.setContentsMargins(4,4,4,4); catalog_layout.addWidget(self.catalog.search)
+        catalog_layout.addWidget(self.catalog.show_unavailable); catalog_layout.addWidget(self.catalog.reason); catalog_layout.addWidget(self.catalog)
+        self.dock('Категории узлов — перетащите в граф', 'catalog', catalog_panel, Qt.DockWidgetArea.LeftDockWidgetArea)
         self.variables = QTreeWidget(); self.variables.setHeaderHidden(True)
         variable_panel = QWidget(); layout = QVBoxLayout(variable_panel); layout.addWidget(self.variables)
         buttons = QHBoxLayout()
@@ -140,7 +150,7 @@ class MainWindow(QMainWindow):
         self.run_action = self.action(run, 'Запустить', self.run_game, 'F5')
         self.stop_action = self.action(run, 'Остановить', self.stop_game, 'F6')
         help_menu = self.menuBar().addMenu('Помощь')
-        self.action(help_menu, 'Управление', lambda: QMessageBox.information(self, 'Horo 0.3.0',
+        self.action(help_menu, 'Управление', lambda: QMessageBox.information(self, 'Horo '+__version__,
             'Сцена: колесо — масштаб вида; средняя кнопка — перемещение вида.\n'
             'Преобразование: выберите режим и перетащите объект.\n'
             'Граф: ПКМ на фоне — поиск; категории — drag & drop.\n'
@@ -151,6 +161,8 @@ class MainWindow(QMainWindow):
             'Сигнатура функции/переменные: двойной щелчок — имя/значение, ПКМ — удаление.'))
         toolbar = self.addToolBar('Основное'); toolbar.setObjectName('main-toolbar'); toolbar.setMovable(False)
         toolbar.addAction(self.run_action); toolbar.addAction(self.stop_action)
+        self.state_label = QLabel(); self.state_label.setWordWrap(True); self.statusBar().addPermanentWidget(self.state_label)
+        self.sync_state()
         toolbar.addSeparator()
         add = QAction('+ Объект', self); add.triggered.connect(lambda: self.add_scene('sprite')); toolbar.addAction(add)
         graph = QAction('+ Граф', self); graph.triggered.connect(lambda: self.new_graph('behavior')); toolbar.addAction(graph)
@@ -158,7 +170,7 @@ class MainWindow(QMainWindow):
 
     def wire(self):
         self.scene_editor.canvas.contourCommitted.connect(self.commit_contour)
-        self.scene_editor.canvas.message.connect(self.message)
+        self.scene_editor.canvas.message.connect(lambda value:self.message(value,'warning'))
         self.tree.itemSelectionChanged.connect(self.tree_selected)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.tree_menu)
@@ -169,6 +181,7 @@ class MainWindow(QMainWindow):
         self.variables.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.variables.customContextMenuRequested.connect(self.variable_menu)
         self.console.itemClicked.connect(self.navigate)
+        self.console_panel.navigate_requested.connect(self.navigate_target)
         canvas = self.scene_editor.canvas
         canvas.chosen.connect(self.select_object); canvas.changed.connect(lambda before, label: QTimer.singleShot(0, lambda: self.commit(before, label)))
         canvas.assetDropped.connect(self.drop_image)
@@ -183,7 +196,9 @@ class MainWindow(QMainWindow):
         graph.expanded_requested.connect(lambda key, value: self.deferred_edit('Подробности карточки', lambda: setattr(self.current_graph().nodes[key], 'expanded', value)))
         graph.rename_requested.connect(lambda key, text: self.edit('Имя узла', lambda: setattr(self.current_graph().nodes[key], 'name', text)))
         graph.remove_requested.connect(self.remove_graph_elements)
-        graph.message.connect(self.message)
+        graph.message.connect(lambda value:self.message(value, 'warning'))
+        self.catalog.availability_mode.connect(lambda value:setattr(graph,'show_unavailable',value))
+        graph.availability_mode.connect(self.catalog.show_unavailable.setChecked)
 
     def dirty(self):
         return self.project.to_dict() != self.saved
@@ -200,8 +215,8 @@ class MainWindow(QMainWindow):
             self.project.check_structure()
         except Exception as exc:
             self.project = before
-            self.message(str(exc))
-            self.refresh(); return
+            self.message(Diagnostic(str(exc)))
+            self.refresh(); self.graph_editor.explain(str(exc)); return
         self.commit(before, label)
 
     def commit(self, before, label):
@@ -250,7 +265,7 @@ class MainWindow(QMainWindow):
         graph = self.current_graph()
         if graph and self.region not in graph.nodes:
             self.region = None
-        self.setWindowTitle(f'Horo 0.3.0 — {self.project.name}' + (' *' if self.dirty() else ''))
+        self.setWindowTitle(f'Horo {__version__} — {self.project.name}' + (' *' if self.dirty() else ''))
         self.tree.blockSignals(True); self.tree.clear()
         tree_items = {}
         def add(key):
@@ -286,10 +301,13 @@ class MainWindow(QMainWindow):
         self.resources.expandAll()
         self.refresh_props(); self.refresh_variables()
         if graph:
-            self.graph_editor.build(self.project, graph, self.region)
+            self.graph_editor.build(self.project, graph, self.region, self.graph_object_id)
         else:
             self.graph_editor.canvas.scene().clear(); self.graph_editor.canvas.graph = None
             self.graph_editor.breadcrumb.setText('Дважды нажмите граф в ресурсах или создайте новый')
+            self.graph_editor.context.clear(); self.graph_editor.signature.hide(); self.graph_editor.feedback.hide()
+        self.catalog.set_context(graph, self.region)
+        self.sync_state()
         self.statusBar().showMessage(f'{len(self.project.nodes)} объектов · {len(self.project.graphs)} графов · '
                                     'Локальный проект · История: до 100 операций')
         self.loading = False
@@ -301,8 +319,15 @@ class MainWindow(QMainWindow):
                 item.widget().hide(); item.widget().deleteLater()
         node = self.project.nodes.get(self.selected)
         if not node:
+            self.props_heading.clear()
             self.props_form.addRow(QLabel('Выберите объект в дереве или на сцене')); return
         key = node.id
+        def section(title):
+            heading=QLabel(title);heading.setWordWrap(True);heading.setStyleSheet('font-weight: bold; color: #91bee9; padding-top: 8px')
+            self.props_form.addRow(heading)
+        # Keep the first field in the form (legacy size-editor API); the first
+        # section heading is outside the form, later sections are spanning rows.
+        self.props_heading.setText('Физика' if node.kind in BODIES else 'Формы' if node.kind in SHAPES else 'Объект')
         def physical_spin(label,attr,low,high,index=None):
             spin=QDoubleSpinBox();spin.setRange(low,high);spin.setDecimals(4)
             spin.setValue(getattr(node,attr) if index is None else getattr(node,attr)[index])
@@ -312,6 +337,8 @@ class MainWindow(QMainWindow):
                     value=list(getattr(self.project.nodes[key],attr));value[index]=spin.value()
                 self.defer_property(key,attr,value)
             spin.editingFinished.connect(commit);self.props_form.addRow(label,spin)
+            units={'gravity':'Единицы сцены/с²; мировые координаты; Y вниз', 'velocity':'Единицы сцены/с; мировые координаты; Y вниз', 'up':'Безразмерное направление; мировые координаты при g=0', 'mass':'Общая масса всех форм тела; условные единицы массы', 'angular_velocity':'Градусы/с; положительное по часовой стрелке', 'friction':'Коэффициент трения: 0…1; безразмерный', 'restitution':'Коэффициент отскока: 0…1; безразмерный'}
+            spin.setToolTip(units[attr]);self.register_reset(spin,key,attr,index=index)
         if node.kind in BODIES:
             for label,attr in [('Трение','friction'),('Отскок','restitution')]:physical_spin(label,attr,0,1)
             if node.kind=='dynamic_body':
@@ -325,33 +352,38 @@ class MainWindow(QMainWindow):
             choice=QComboBox();choice.addItems(['Обычная','Односторонняя'])
             choice.setCurrentIndex(int(node.one_way))
             choice.currentIndexChanged.connect(lambda i:self.defer_property(key,'one_way',bool(i)))
-            self.props_form.addRow('Поверхность',choice)
+            self.props_form.addRow('Поверхность',choice);self.register_reset(choice,key,'one_way')
             normals=[(0,-1),(0,1),(-1,0),(1,0)]
             normal=QComboBox();normal.addItems(['Вверх (0,−1)','Вниз (0,1)','Влево (−1,0)','Вправо (1,0)'])
             normal.setCurrentIndex(normals.index(tuple(node.one_way_normal)))
             normal.currentIndexChanged.connect(lambda i:self.defer_property(key,'one_way_normal',list(normals[i])))
-            self.props_form.addRow('Блокирующая сторона',normal)
+            self.props_form.addRow('Блокирующая сторона',normal);self.register_reset(normal,key,'one_way_normal')
+            normal.setEnabled(node.one_way);normal.setToolTip('Сторона применяется только для односторонней поверхности. Локальная нормаль преобразуется в мир.')
         if node.kind in SHAPES:
             fields=[('Ширина','width'),('Высота','height')] if node.kind=='rect_shape' else [('Радиус','radius')] if node.kind=='circle_shape' else []
             for label,attr in fields:
                 spin=QDoubleSpinBox();spin.setRange(.25,1000000);spin.setDecimals(3);spin.setValue(getattr(node,attr))
                 spin.editingFinished.connect(lambda a=attr,s=spin:self.defer_property(key,a,s.value()))
-                self.props_form.addRow(label,spin)
+                self.props_form.addRow(label,spin);self.register_reset(spin,key,attr)
             if node.kind=='polygon_shape':
                 for label,new in [('Редактировать точки',False),('Нарисовать заново',True)]:
                     button=QPushButton(label);button.clicked.connect(lambda checked=False,new=new:self.scene_editor.canvas.contour.begin(key,new))
                     self.props_form.addRow(button)
+                    self.register_reset(button,key,'points')
                 self.props_form.addRow(QLabel('Enter — завершить; Escape — отменить черновик.\nShift+клик по ребру — вставить; Delete — убрать точку.'))
             self.props_form.addRow(QLabel('Физика: только положительный равномерный масштаб.'))
+        if node.kind in BODIES or node.kind in SHAPES:section('Объект')
         name = QLineEdit(node.name)
         name.editingFinished.connect(lambda: self.defer_property(key, 'name', name.text()))
-        self.props_form.addRow('Имя', name)
+        self.props_form.addRow('Имя', name);self.register_reset(name,key,'name')
         id_label = QLineEdit(node.id); id_label.setReadOnly(True); self.props_form.addRow('ID', id_label)
+        section('Преобразование — локальное; единицы сцены, масштаб ×, угол °')
         for label, attr in [('X', 'x'), ('Y', 'y'), ('Масштаб X', 'sx'), ('Масштаб Y', 'sy'), ('Поворот °', 'rotation')]:
             spin = QDoubleSpinBox(); spin.setRange(-1e9, 1e9); spin.setDecimals(3); spin.setValue(getattr(node.transform, attr))
             spin.editingFinished.connect(lambda a=attr, s=spin: self.defer_transform(key, a, s.value()))
-            self.props_form.addRow(label, spin)
+            self.props_form.addRow(label, spin);self.register_reset(spin,key,attr,transform=True)
         if node.kind == 'sprite':
+            section('Изображение — размеры в единицах сцены')
             try:
                 pix = QPixmap(str(asset_path(self.folder, node.image))) if self.folder and node.image else QPixmap()
             except ValueError:
@@ -362,7 +394,7 @@ class MainWindow(QMainWindow):
                 spin.setValue(abs(getattr(node.transform, attr))*base)
                 sign = 1 if getattr(node.transform, attr) > 0 else -1
                 spin.editingFinished.connect(lambda a=attr, s=spin, b=base, sign=sign: self.defer_transform(key, a, sign*s.value()/b))
-                self.props_form.addRow(label, spin)
+                self.props_form.addRow(label, spin);self.register_reset(spin,key,attr,transform=True)
             image = QComboBox(); image.addItem('Нет изображения', None)
             if self.folder and (self.folder/'assets').exists():
                 for path in sorted((self.folder/'assets').iterdir()):
@@ -370,7 +402,7 @@ class MainWindow(QMainWindow):
                         image.addItem(path.name, path.relative_to(self.folder).as_posix())
             image.setCurrentIndex(max(0, image.findData(node.image)))
             image.currentIndexChanged.connect(lambda _: self.defer_property(key, 'image', image.currentData()))
-            self.props_form.addRow('Изображение', image)
+            self.props_form.addRow('Изображение', image);self.register_reset(image,key,'image')
         parent = QComboBox(); parent.addItem('Корень сцены', None)
         excluded = {key}
         while True:
@@ -383,20 +415,55 @@ class MainWindow(QMainWindow):
                 parent.addItem(obj.name+' ['+obj.id[:8]+']', obj.id)
         parent.setCurrentIndex(max(0, parent.findData(node.parent)))
         parent.currentIndexChanged.connect(lambda _: self.defer_property(key, 'parent', parent.currentData()))
-        self.props_form.addRow('Родитель', parent)
+        self.props_form.addRow('Родитель', parent);self.register_reset(parent,key,'parent')
+        section('Граф — общий ресурс поведения')
         graph = QComboBox(); graph.addItem('Нет поведения', None)
         for g in self.project.graphs.values():
             if g.kind == 'behavior':
                 graph.addItem(g.name, g.id)
         graph.setCurrentIndex(max(0, graph.findData(node.graph)))
         graph.currentIndexChanged.connect(lambda _: self.defer_property(key, 'graph', graph.currentData()))
-        self.props_form.addRow('Поведение', graph)
+        self.props_form.addRow('Поведение', graph);self.register_reset(graph,key,'graph')
         button = QPushButton('Открыть прикреплённый граф')
-        button.clicked.connect(lambda: self.open_graph(self.project.nodes[key].graph))
+        button.clicked.connect(lambda: self.open_graph(self.project.nodes[key].graph,key))
+        button.setEnabled(node.graph is not None)
+        button.setToolTip('Нет прикреплённого поведения: выберите ресурс в поле Поведение' if node.graph is None else 'Открыть общий ресурс из контекста этого объекта')
         self.props_form.addRow(button)
         self.props_form.addRow(QLabel('Положение локальное; ось Y вниз.\nПоворот по часовой стрелке; центр — начало объекта.'))
+        reset_help=QLabel('ПКМ по свойству → значение по умолчанию. Сбрасывается только выбранное поле; доступна отмена.');reset_help.setWordWrap(True);self.props_form.addRow(reset_help)
         for field in self.props.findChildren(QLineEdit):
             field.installEventFilter(self)
+
+    def register_reset(self, widget, key, attr, transform=False, index=None):
+        default=SceneNode(kind=self.project.nodes[key].kind)
+        value=getattr(default.transform if transform else default,attr)
+        if index is not None:value=value[index]
+        widget.setToolTip(widget.toolTip()+'\nПКМ: вернуть значение по умолчанию '+str(value))
+        widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        def menu_at(pos):
+            menu=widget.createStandardContextMenu() if hasattr(widget,'createStandardContextMenu') else widget.lineEdit().createStandardContextMenu() if isinstance(widget,QDoubleSpinBox) else QMenu(widget)
+            menu.addSeparator();action=menu.addAction('Вернуть значение по умолчанию: '+str(value))
+            action.setToolTip('Только это свойство, не последнее сохранённое значение. Можно отменить.')
+            global_pos=widget.mapToGlobal(pos)
+            menu.setParent(self,menu.windowFlags())
+            chosen=menu.exec(global_pos)==action
+            menu.deleteLater()
+            if chosen:
+                QTimer.singleShot(0,lambda:self.reset_property(key,attr,transform,index))
+        widget.customContextMenuRequested.connect(menu_at)
+
+    def reset_property(self, key, attr, transform=False, index=None):
+        self.flush_edits()
+        if key not in self.project.nodes:return
+        default=SceneNode(kind=self.project.nodes[key].kind)
+        value=copy.deepcopy(getattr(default.transform if transform else default,attr))
+        def apply():
+            target=self.project.nodes[key].transform if transform else self.project.nodes[key]
+            if index is not None:
+                new=list(getattr(target,attr));new[index]=value[index];setattr(target,attr,new)
+            else:setattr(target,attr,value)
+        # Use the same History/structure transaction as normal property edits.
+        self.edit('Значение свойства по умолчанию',apply)
 
     def defer_property(self, key, attr, value):
         if not self.loading and key in self.project.nodes and getattr(self.project.nodes[key], attr) != value:
@@ -446,7 +513,7 @@ class MainWindow(QMainWindow):
 
     def add_scene(self, kind, image=None, position=None):
         if kind in SHAPES and (self.selected not in self.project.nodes or self.project.nodes[self.selected].kind not in BODIES):
-            self.message('Сначала выберите физическое тело — родителя формы');return
+            self.message('Сначала выберите физическое тело — родителя формы','warning');return
         node = SceneNode(kind=kind, name='Изображение' if kind == 'sprite' else 'Преобразование 2D',
                          parent=None if position is not None else self.selected, image=image)
         names={'static_body':'Неподвижное тело','controlled_body':'Управляемое тело','dynamic_body':'Динамическое тело','platform_body':'Платформа','rect_shape':'Прямоугольная форма','circle_shape':'Круглая форма','polygon_shape':'Многоугольная форма'}
@@ -490,14 +557,14 @@ class MainWindow(QMainWindow):
         g = Graph(name=name.strip() or 'Граф', kind=kind); g.add('key' if kind == 'behavior' else 'entry', 0, 0)
         def apply():
             self.project.graphs[g.id] = g
-            self.graph_id = g.id; self.region = None
+            self.graph_id = g.id; self.graph_object_id=None; self.region = None
         self.edit('Создание графа', apply); self.tabs.setCurrentIndex(1)
         self.graph_editor.canvas.centerOn(150, 100)
 
-    def open_graph(self, key):
+    def open_graph(self, key, object_id=None):
         if key not in self.project.graphs:
-            self.message('Граф не выбран или уже удалён'); return
-        self.graph_id = key; self.region = None; self.refresh(); self.tabs.setCurrentIndex(1)
+            self.message('Граф не выбран или уже удалён','warning'); return
+        self.graph_id = key; self.graph_object_id = object_id; self.region = None; self.refresh(); self.tabs.setCurrentIndex(1)
 
     def open_region(self, region):
         graph = self.current_graph()
@@ -513,10 +580,9 @@ class MainWindow(QMainWindow):
 
     def add_graph_node(self, kind, x, y):
         graph = self.current_graph()
-        if not graph or kind not in self.graph_editor.canvas.allowed():
-            return
-        if kind == 'entry' and any(n.kind == kind for n in graph.nodes.values()):
-            self.message('У функции один вход; сначала удалите существующий'); return
+        reason = node_availability(graph,kind,self.region)
+        if reason:
+            self.graph_editor.explain(reason); self.message(reason,'warning'); return
         self.edit('Создание узла графа', lambda: self.current_graph().add(kind, x, y, self.region))
 
     def edit_output(self, key, action, output_id):
@@ -531,6 +597,7 @@ class MainWindow(QMainWindow):
         self.deferred_edit('Параметр узла', lambda: self.project.graphs[gid].nodes[key].params.__setitem__(param, value))
 
     def add_edge(self, edge):
+        if not self.current_graph():return
         self.edit('Создание связи', lambda: connect(self.project, self.current_graph(), edge))
 
     def remove_graph_elements(self, nodes, edges):
@@ -554,7 +621,7 @@ class MainWindow(QMainWindow):
     def add_parameter(self, result):
         g = self.current_graph()
         if not g or g.kind != 'function':
-            self.message('Параметры и результаты создаются в открытом графе-функции'); return
+            self.message('Параметры и результаты создаются в открытом графе-функции','warning'); return
         dialog = ParameterDialog(parent=self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             param = dialog.result_parameter
@@ -618,7 +685,7 @@ class MainWindow(QMainWindow):
         elif action == delete:
             used = any(n.graph == key for n in self.project.nodes.values()) or any(n.params.get('function') == key for g in self.project.graphs.values() for n in g.nodes.values())
             if used:
-                self.message('Граф используется. Сначала снимите привязки/вызовы'); return
+                self.message('Граф используется. Сначала снимите привязки/вызовы','warning'); return
             def apply():
                 self.project.graphs.pop(key)
                 self.project.variables = {k: v for k, v in self.project.variables.items() if v.owner != key}
@@ -643,7 +710,7 @@ class MainWindow(QMainWindow):
             relative = import_asset(path, self.folder)
             self.refresh(); self.message('Импортирован ресурс: '+relative)
         except (OSError, ValueError) as exc:
-            self.message('Ошибка импорта: '+str(exc))
+            self.message(Diagnostic('Ошибка импорта: '+str(exc)))
 
     def scan_assets(self):
         for node in self.project.nodes.values():
@@ -654,34 +721,46 @@ class MainWindow(QMainWindow):
                     missing = True
                 if missing and node.id not in self.resource_warnings:
                     self.resource_warnings.add(node.id)
-                    self.message(Diagnostic('Изображение отсутствует/не читается: используется видимая замена', object_id=node.id))
+                    self.message(Diagnostic('Изображение отсутствует/не читается: используется видимая замена', object_id=node.id, severity='warning'))
 
-    def message(self, value):
-        d = value if isinstance(value, Diagnostic) else Diagnostic(str(value))
-        item = QListWidgetItem(d.describe(self.project)); item.setData(Qt.ItemDataRole.UserRole, d)
-        self.console.addItem(item)
-        if self.console.count() > 1000:
-            self.console.takeItem(0)
-        self.console.scrollToBottom()
-        self.statusBar().showMessage(d.message, 10000)
+    def message(self, value, severity='info'):
+        d=value if isinstance(value,Diagnostic) else Diagnostic(str(value),severity=severity)
+        self.console_panel.add(d,self.project)
+        self.statusBar().showMessage(d.message,10000)
+
+    def navigate_target(self, diagnostic, target):
+        key=getattr(diagnostic,target+'_id')
+        if target=='graph':
+            if key in self.project.graphs:self.open_graph(key,diagnostic.object_id)
+            else:self.console_panel.notice.setText('Граф уже удалён; сообщение относится к предыдущему состоянию')
+        elif key in self.project.nodes:
+            self.select_object(key);self.tabs.setCurrentIndex(0)
+            item=self.scene_editor.canvas.items_by_id.get(key)
+            if item:self.scene_editor.canvas.centerOn(item)
+        else:self.console_panel.notice.setText('Источник уже удалён; сообщение относится к предыдущему состоянию')
 
     def navigate(self, item):
         d = item.data(Qt.ItemDataRole.UserRole)
         g = self.project.graphs.get(d.graph_id)
         if g and d.node_id in g.nodes:
-            self.graph_id = g.id
+            self.graph_id = g.id; self.graph_object_id = d.object_id
             try:
                 region_ancestors(g, g.nodes[d.node_id].region)
                 self.region = g.nodes[d.node_id].region
             except ValueError:
                 self.region = None
-                self.message('Область узла повреждена; открыт внешний граф')
+                self.message('Область узла повреждена; открыт внешний граф','warning')
             self.refresh(); self.tabs.setCurrentIndex(1); self.graph_editor.canvas.focus_node(d.node_id)
-        elif d.object_id in self.project.nodes:
-            self.select_object(d.object_id); self.tabs.setCurrentIndex(0)
-            self.scene_editor.canvas.centerOn(self.scene_editor.canvas.items_by_id[d.object_id])
-        elif d.graph_id or d.node_id or d.object_id:
-            self.statusBar().showMessage('Элемент уже удалён; сообщение относится к предыдущему состоянию', 10000)
+        elif (d.shape_id or d.object_id) in self.project.nodes:
+            target=d.shape_id if d.shape_id in self.project.nodes else d.object_id
+            self.select_object(target); self.tabs.setCurrentIndex(0)
+            self.scene_editor.canvas.centerOn(self.scene_editor.canvas.items_by_id[target])
+        elif g:
+            self.open_graph(g.id,d.object_id)
+            if d.node_id:self.graph_editor.explain('Узел уже удалён; открыт ресурс графа')
+        elif d.graph_id or d.node_id or d.object_id or d.shape_id:
+            text='Элемент уже удалён; сообщение относится к предыдущему состоянию'
+            self.statusBar().showMessage(text,10000);self.console_panel.notice.setText(text)
 
     def maybe_save(self):
         self.flush_edits()
@@ -712,7 +791,7 @@ class MainWindow(QMainWindow):
             save_project(p, folder)
             self.replace_project(p, folder)
         except (OSError, ValueError) as exc:
-            self.message('Ошибка создания проекта: '+str(exc))
+            self.message(Diagnostic('Ошибка создания проекта: '+str(exc)))
 
     def replace_project(self, project, folder):
         self.scene_editor.canvas.contour.cancel()
@@ -720,7 +799,7 @@ class MainWindow(QMainWindow):
         self.stop_game(); self.project = project; self.folder = Path(folder)
         self.saved = project.to_dict(); self.history = History()
         self.selected = None; self.graph_id = None; self.region = None; self.resource_warnings.clear()
-        self.console.clear(); self.refresh(); self.scene_editor.fit(); self.scan_assets()
+        self.console_panel.clear(); self.graph_object_id=None; self.last_run_error=False; self.refresh(); self.scene_editor.fit(); self.scan_assets()
 
     def open_project(self):
         path, _ = QFileDialog.getOpenFileName(self, 'Открыть проект', '', 'Horo (project.horo.json *.horo.json)')
@@ -735,7 +814,7 @@ class MainWindow(QMainWindow):
             folder = Path(path) if Path(path).is_dir() else Path(path).parent
             self.replace_project(p, folder); return True
         except (OSError, ValueError) as exc:
-            self.message('Ошибка открытия проекта: '+str(exc)); return False
+            self.message(Diagnostic('Ошибка открытия проекта: '+str(exc))); return False
 
     def save(self):
         self.flush_edits()
@@ -752,7 +831,7 @@ class MainWindow(QMainWindow):
             self.folder = folder; self.saved = self.project.to_dict(); self.refresh()
             self.message('Проект сохранён локально'); return True
         except (OSError, ValueError) as exc:
-            self.message('Ошибка сохранения: '+str(exc)); return False
+            self.message(Diagnostic('Ошибка сохранения: '+str(exc))); return False
 
     def project_settings(self):
         dialog = ProjectDialog(self.project, self)
@@ -769,6 +848,8 @@ class MainWindow(QMainWindow):
             self.stop_game()
         errors = validate_project(self.project)
         if errors:
+            self.last_run_error=True;self.sync_state()
+            self.graph_editor.explain(errors[0].message)
             for d in errors:
                 self.message(d)
             next(d for d in self.docks if d.objectName() == 'console').raise_()
@@ -776,19 +857,34 @@ class MainWindow(QMainWindow):
         self.scan_assets()
         try:
             self.game = GameWindow(Runtime(self.project), self.folder)
-            self.game.failed.connect(self.message)
+            self.last_run_error=False;self.sync_state()
+            self.game.failed.connect(self.game_failed)
             self.game.finished.connect(self.game_finished)
             self.game.show(); self.game.raise_(); self.game.activateWindow(); self.game.setFocus()
             self.message('Игра запущена на отдельном снимке. Правки редактора применятся только при следующем запуске.')
         except GraphError as exc:
-            self.message(exc.diagnostic)
+            self.game_failed(exc.diagnostic)
+
+    def game_failed(self, diagnostic):
+        self.last_run_error=True;self.sync_state();self.message(diagnostic)
+        self.graph_editor.explain(diagnostic.message)
+
+    def sync_state(self):
+        running=bool(self.game and self.game.runtime.running)
+        text="Игра запущена" if running else "Остановлено из-за ошибки" if self.last_run_error else "Редактирование"
+        self.state_label.setText(text)
+        self.state_label.setToolTip("Правки редактора применятся к следующему запуску, не текущему снимку" if running else text)
+        self.stop_action.setEnabled(self.game is not None)
+        self.stop_action.setToolTip("Остановить и закрыть игровое окно" if self.game else "Нет игрового окна для остановки")
+        self.run_action.setToolTip("Перейти в уже запущенное игровое окно" if running else "Проверить проект и запустить новый снимок")
 
     def game_finished(self):
-        self.game = None
+        self.game = None;self.sync_state()
 
     def stop_game(self):
         if self.game:
             game = self.game; self.game = None; game.close()
+        self.sync_state()
 
     def eventFilter(self, watched, event):
         if (event.type() == QEvent.Type.ShortcutOverride
